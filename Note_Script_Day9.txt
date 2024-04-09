@@ -1806,3 +1806,296 @@ npm install framer-motion@10.16.4
 Step 3: ติดตั้ง Library React implementation of the Intersection Observer API 
 ---
 npm i react-intersection-observer@9.5.2
+
+
+-------------------------------------------------------
+✈ DAY 8
+-------------------------------------------------------
+Section 11: React Hook Form with Yup
+Section 12: Auth ใน NextJS 14
+
+Step: 1 ปรับโครงสร้างโปรเจ็กต์ next-store-app
+---
+next-store-app
+|- public
+|- src
+   |-- app
+       |-- (auth)
+           |-- _authForms
+           |-- forgotpass
+           |-- login
+           |-- register
+           |-- twostep
+           |-- types
+           \-- layout.tsx
+       |-- (back)
+           |-- backend
+           |   |-- dashboard
+           |   |   |-- Dashboard.tsx
+           |   |   |-- page.tsx
+           |   |-- products
+           |   |   |-- Products.tsx
+           |   |   |-- page.tsx
+           \-- layout.tsx
+       |-- (front)
+           |-- about
+           |-- blog
+           |-- contact
+           |-- home
+           |-- page.tsx
+           \-- layout.tsx
+       |-- components
+           |-- back
+           |   |-- custom-scroll
+           |   |   |-- Scrollbar.tsx
+           |   |-- dashboard
+           |   |-- header
+           |   |   |-- data.ts
+           |   |   |-- Header.tsx
+           |   |   |-- MobileRightSidebar.tsx
+           |   |   |-- Notification.tsx
+           |   |   |-- Profile.tsx
+           |   |   |-- Search.tsx
+           |   |-- shared
+           |   |-- sidebar
+           |   |   |-- NavGroup
+           |   |   |   |-- NavGroup.tsx
+           |   |   |-- NavItem
+           |   |   |   |-- index.tsx
+           |   |   |-- SidebarProfile
+           |   |   |   |-- Profile.tsx
+           |   |   |-- MenuItems.ts
+           |   |   |-- Sidebar.tsx
+           |   |   |-- SidebarItems.tsx
+           |-- forms
+           |   |-- theme-elements
+           |   |   |-- CustomCheckbox.tsx
+           |   |   |-- CustomFormLabel.tsx
+           |   |   |-- CustomSocialButton.tsx
+           |   |   \-- CustomTextField.tsx
+           \-- front
+               |-- animation
+               |-- banner
+               |-- footer
+               |-- frameworks
+               |-- header
+                   |-- Header.tsx
+       |-- themes
+           |-- Colors.ts
+           |-- Shadows.ts
+           |-- Theme.ts
+           \-- Typography.ts
+       |-- favicon.ico
+       |-- globals.css
+       |-- layout.tsx
+       |-- not-found.tsx
+   |-- next.config.mjs
+   |-- package.json
+   |-- tsconfig.json
+
+
+Step 2: ติดตั้ง tabler/icons-react
+---
+npm install @tabler/icons-react@2.39.0
+
+Step 3: ติดตั้ง lodash
+---
+npm install lodash@4.17.21
+npm install @types/lodash@4.14.199
+
+Step 4: ติดตั้ง simplebar-react
+---
+npm install simplebar-react@3.2.4
+
+Step 5: ติดตั้ง apexcharts
+---
+npm install apexcharts@3.43.0
+npm install react-apexcharts@1.4.1
+
+Step 6: ติดตั้ง @mui/lab
+---
+npm install @mui/lab
+
+-------------------------------------------------------
+การทำ Auth ใน NextJS 14 ด้วย Middleware
+-------------------------------------------------------
+Step 7: สร้างไฟล์ชื่อ "middleware.ts" ไว้ที่ root ของโปรเจ็กต์ใน src/middleware.ts
+---
+import { NextRequest, NextResponse } from "next/server";
+
+export async function middleware(request: NextRequest) {
+    try {
+
+        // หน้าเหล่านี้ไม่ต้องเช็คสถานะการล็อกอิน
+        const isPublicPage = request.nextUrl.pathname === '/login' || 
+                             request.nextUrl.pathname === '/register' || 
+                             request.nextUrl.pathname === '/forgotpass' || 
+                             request.nextUrl.pathname === '/reset-password' || 
+                             request.nextUrl.pathname === '/maintenance' || 
+                             request.nextUrl.pathname === '/coming-soon'
+        // อ่าน token จาก cookie
+        // const token = request.cookies.get('token')?.value
+        const token = true // มี token แสดงว่าล็อกอินแล้ว
+
+        // ดูว่าเป็นหน้า public หรือไม่
+        console.log(token, isPublicPage)
+
+        // ถ้ามี token และเข้าหน้า public ให้ redirect ไปหน้า dashboard
+        if(token && isPublicPage){
+            return NextResponse.redirect(new URL('/backend/dashboard', request.nextUrl))
+        }
+
+        // ถ้าไม่มี token และเข้าหน้าที่ต้องล็อกอิน ให้ redirect ไปหน้า login
+        if(!token && !isPublicPage){
+            return NextResponse.redirect(new URL('/login', request.nextUrl))
+        }
+
+        return NextResponse.next()
+
+    }
+    catch(error) {
+        console.error("Error: ", error)
+        return NextResponse.error()
+    }
+}
+
+export const config = {
+    matcher: [
+        "/login",
+        "/register",
+        "/forgotpass",
+        "/reset-password",
+        "/maintenance",
+        "/coming-soon",
+        "/backend/:path*",
+    ]
+}
+
+
+-------------------------------------------------------
+✈ DAY 9
+-------------------------------------------------------
+Section 11: React Hook Form with Yup
+Section 12: การทำ Auth ใน NextJS 14 ด้วย Middleware
+
+Step: 1 ปรับโครงสร้างโปรเจ็กต์ next-store-app
+---
+next-store-app
+|- public
+|- src
+   |-- app
+       |-- (auth)
+           |-- _authForms
+           |   |-- AuthForgotPassword.tsx
+           |   |-- AuthLogin.tsx
+           |   |-- AuthRegister.tsx
+           |   |-- AuthSocialButtons.tsx
+           |   |-- AuthTwoSteps.tsx
+           |-- forgotpass
+           |-- login
+           |-- register
+           |-- twostep
+           |-- types
+           \-- layout.tsx
+       |-- (back)
+           |-- backend
+           |   |-- dashboard
+           |   |   |-- Dashboard.tsx
+           |   |   |-- page.tsx
+           |   |-- products
+           |   |   |-- Products.tsx
+           |   |   |-- page.tsx
+           \-- layout.tsx
+       |-- (front)
+           |-- about
+           |-- blog
+           |-- contact
+           |-- home
+           |-- page.tsx
+           \-- layout.tsx
+       |-- components
+           |-- back
+           |   |-- custom-scroll
+           |   |   |-- Scrollbar.tsx
+           |   |-- dashboard
+           |   |-- header
+           |   |   |-- data.ts
+           |   |   |-- Header.tsx
+           |   |   |-- MobileRightSidebar.tsx
+           |   |   |-- Notification.tsx
+           |   |   |-- Profile.tsx
+           |   |   |-- Search.tsx
+           |   |-- shared
+           |   |-- sidebar
+           |   |   |-- NavGroup
+           |   |   |   |-- NavGroup.tsx
+           |   |   |-- NavItem
+           |   |   |   |-- index.tsx
+           |   |   |-- SidebarProfile
+           |   |   |   |-- Profile.tsx
+           |   |   |-- MenuItems.ts
+           |   |   |-- Sidebar.tsx
+           |   |   |-- SidebarItems.tsx
+           |-- forms
+           |   |-- theme-elements
+           |   |   |-- CustomCheckbox.tsx
+           |   |   |-- CustomFormLabel.tsx
+           |   |   |-- CustomSocialButton.tsx
+           |   |   \-- CustomTextField.tsx
+           \-- front
+               |-- animation
+               |-- banner
+               |-- footer
+               |-- frameworks
+               |-- header
+                   |-- Header.tsx
+       |-- services
+           |-- actions
+               |-- authAction.ts
+               |-- productAction.ts
+       |-- themes
+           |-- Colors.ts
+           |-- Shadows.ts
+           |-- Theme.ts
+           \-- Typography.ts
+       |-- favicon.ico
+       |-- globals.css
+       |-- layout.tsx
+       |-- not-found.tsx
+       |-- middleware.ts
+   |-- next.config.mjs
+   |-- package.json
+   |-- tsconfig.json
+|- .env.development (npm run dev)
+|- .env.production (npm start)
+
+Step 1: ติดตั้ง Lib สำหรับการจัดการกับฟอร์ม
+---
+npm install react-hook-form@7.48.2
+npm install @hookform/resolvers@3.3.2
+npm install yup@1.3.2
+
+Step 2: Sample Post Product
+---
+
+curl -X 'POST' \
+  'http://localhost:5053/api/Product' \
+  -H 'accept: text/plain' \
+  -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiaWFtc2FtaXQiLCJqdGkiOiJjOWMxOTEwYS0yOTM1LTRmYzgtYmMxMC0zNmU1MGIxNjA1ZDciLCJleHAiOjE3MTI3MzE2MTAsImlzcyI6IioiLCJhdWQiOiIqIn0.p7YfMfzBWvUP8eDvOIk09zmuJ8vxwKig6olgRDXT8lQ' \
+  -H 'Content-Type: multipart/form-data' \
+  -F 'modified_date=2021-07-01T00:00:00' \
+  -F 'created_date=2021-07-01T00:00:00' \
+  -F 'product_picture=newmobile2024.png' \
+  -F 'unit_price=25400' \
+  -F 'unit_in_stock=10' \
+  -F 'image=@Mobile Foundation Android Development with Kotlin.jpg;type=image/jpeg' \
+  -F 'product_name=Mobile Product New 2024' \
+  -F 'category_id=1'
+
+  }
+
+
+
+
+
+
