@@ -1,0 +1,1808 @@
+================================
+🛴 Workshop .NET 8 with NextJS14  🛴
+================================
+✈ DAY 1
+-------------------------------------------------------
+1: การเตรียมเครื่องมือบน Mac และ Windows
+2: แนะนำ .NET Core 8
+3: สร้าง .NET 8 Rest API
+-------------------------------------------------------
+🛠1. การเตรียมเครื่องมือและความพร้อม
+💻 .NET SDK 8.x
+---
+dotnet --version
+
+💻 Node JS 18.x and up
+---
+node -v
+npm -v
+
+💻 PostgreSQL 15 and up
+---
+psql --version
+
+💻 Docker Desktop
+---
+docker --version
+
+💻 Git
+---
+git version
+
+💻 VSCode
+---
+code -v
+
+2: แนะนำ .NET Core 8
+---
+ตั้งแต่ .NET 6 เป็นต้นมา สามารถสร้าง API ได้ 2 approaches ด้วยกันคือ 
+
+1. controller-based APIs
+2. minimal APIs
+
+Minimal API: เหมาะสำหรับ API ขนาดเล็ก ต้องการพัฒนา quickly ต้องการโค้ดที่กระชับ
+
+Controller-based API: เหมาะสำหรับ API ขนาดใหญ่ ต้องการความยืดหยุ่นสูง ต้องการการตั้งค่าเพิ่มเติม
+
+Minimal API:
+---
+จุดเด่น:
+
+โค้ดน้อย กระชับ อ่านง่าย
+พัฒนาได้รวดเร็ว
+เหมาะสำหรับ API ขนาดเล็ก
+สนับสนุนการใช้ lambda expression
+รองรับ async/await โดยตรง
+
+จุดด้อย:
+
+ตัวเลือกการตั้งค่ามีจำกัด
+ไม่เหมาะกับ API ขนาดใหญ่
+การจัดการ routing ซับซ้อน
+
+Controller-based API:
+---
+จุดเด่น:
+
+มีโครงสร้างชัดเจน
+ตัวเลือกการตั้งค่าหลากหลาย
+เหมาะกับ API ขนาดใหญ่
+รองรับการทดสอบง่าย
+รองรับ middleware
+จุดด้อย:
+
+โค้ดยาว ยุ่งยาก
+พัฒนาได้ช้ากว่า Minimal API
+
+3: สร้าง .NET 8 Rest API
+
+🚀เริ่มต้นสร้างโปรเจ็กต์ .NET Core Web API ใหม่ใน .NET 8
+---
+Step 1: สร้างโฟลเดอร์ใหม่ในเครื่องสำหรับเก็บโปรเจ็กต์ในคอร์สอบรมนี้
+---
+mkdir NetCoreWithNextJS
+
+Step 2: คำสั่งสร้างโปรเจ็กต์ใหม่ในโฟลเดอร์ที่สร้าง
+---
+สร้างโปรเจ็กต์ Web APIs แบบ Minimal APIs
+---
+dotnet new webapi -o MinimalAPI
+
+สร้างโปรเจ็กต์ Web APIs แบบ Controller-based APIs
+---
+dotnet new webapi --use-controllers -o ControllerAPI
+
+Step 3: เปิดเข้าใน VSCode
+---
+code MinimalAPI
+or
+code ControllerAPI
+
+Step 4: รันโปรเจ็กต์
+---
+dotnet watch run
+
+💻 เรียนรู้การสร้าง REST API ด้วย .NET Web API แบบ Controller-base APIs
+---
+Step 1: ในโปรเจ็กต์ ControllerAPI ลบไฟล์ Controller/WeatherForecastController.cs
+และไฟล์ WeatherForecast.cs
+
+Step 2: สร้าง model ใน Models/User
+---
+namespace WebApi.Models;
+public class User
+{
+    public int Id { get; set; }
+    public required string Username { get; set; }
+    public required string Email { get; set; }
+    public required string Fullname { get; set; }
+}
+
+
+Step 3: สร้าง UserController ใน Controllers
+---
+using Microsoft.AspNetCore.Mvc;
+using WebApi.Models;
+
+namespace WebApi.Controllers;
+
+[ApiController]
+[Route("api/[controller]")] // api/User
+public class UserController : ControllerBase
+{
+    // mock data for users
+    private static readonly List<User> _users = new List<User>
+    {
+        new User { 
+            Id = 1, 
+            Username = "john", 
+            Email = "john@email.com", 
+            Fullname = "John Doe"
+        },
+        new User { 
+            Id = 2, 
+            Username = "samit", 
+            Email = "samit@email.com", 
+            Fullname = "Samit Koyom"
+        },
+    };
+
+    // GET: api/User
+    [HttpGet]
+    public ActionResult<IEnumerable<User>> GetUsers()
+    {
+        // IEnumerable คืออะไร
+        // IEnumerable เป็น interface ใน .NET Framework ที่ใช้แทน collection ของ object
+        // interface นี้กำหนด method เพียงตัวเดียวคือ GetEnumerator()
+        // GetEnumerator() : method นี้ return enumerator
+        // enumerator : object ที่ใช้วนซ้ำผ่าน collection
+        // ในที่นี้เราใช้ IEnumerable ในการ return ข้อมูลของ users
+
+        // วนซ้ำผ่าน collection โดยใช้ foreach
+        // foreach (var user in _users)
+        // {
+        //     Console.WriteLine($"{user.Id} - {user.Username}");
+        // }
+
+        return Ok(_users);
+    }
+
+    // GET: api/User/{id}
+    [HttpGet("{id}")]
+    public ActionResult<User> GetUser(int id)
+    {
+        var user = _users.Find(u => u.Id == id); // find user by id
+        if (user == null)
+        {
+            return NotFound();
+        }
+        return Ok(user);
+    }
+
+
+    // POST: api/User
+    [HttpPost]
+    public ActionResult<User> CreateUser([FromBody] User user)
+    {
+        _users.Add(user);
+        return CreatedAtAction(nameof(GetUser), new { id = user.Id }, user);
+    }
+
+    // PUT: api/User/{id}
+    [HttpPut("{id}")]
+    public IActionResult UpdateUser(int id, [FromBody] User user)
+    {
+        // Validate user id
+        if (id != user.Id)
+        {
+            return BadRequest();
+        }
+
+        // Find existing user
+        var existingUser = _users.Find(u => u.Id == id);
+        if (existingUser == null)
+        {
+            return NotFound();
+        }
+
+        // Update user
+        existingUser.Username = user.Username;
+        existingUser.Email = user.Email;
+        existingUser.Fullname = user.Fullname;
+
+        // Return updated user
+        return Ok(existingUser);
+    }
+
+    // DELETE: api/User/2
+    [HttpDelete("{id}")]
+    public ActionResult DeleteUser(int id)
+    {
+        // Find existing user
+        var user = _users.Find(u => u.Id == id);
+
+        if (user == null)
+        {
+            return NotFound();
+        }
+
+        // Remove user from list
+        _users.Remove(user);
+        return NoContent();
+    }
+
+
+}
+
+-------------------------------------------------------
+✈ DAY 2
+4:  Entity Framework Core ใน .NET 8 
+5: .NET 8 Rest API CRUD with EFCore
+-------------------------------------------------------
+🚀 WORKSHOP: StoreAPI with EF8 and PostgreSQL
+
+"การใช้งาน EFCore แบบ Database first"
+
+Step 1: เตรียมฐานข้อมูล PostgresSQL
+---
+สร้างฐานข้อมูลใหม่ ชื่อ "storedb"
+---
+CREATE DATABASE storedb;
+
+Step 2: สร้างตาราง "categories" และ "products"
+---
+Category table query
+---
+CREATE TABLE categories (
+  category_id SERIAL PRIMARY KEY,
+  category_name VARCHAR(128) NOT NULL,
+  category_status INTEGER NOT NULL
+);
+
+Products table query
+---
+CREATE TABLE products (
+  product_id SERIAL PRIMARY KEY,
+  category_id INTEGER REFERENCES categories(category_id) ON DELETE SET NULL,
+  product_name VARCHAR(50),
+  unit_price DECIMAL(18, 0),
+  product_picture VARCHAR(1024),
+  unit_in_stock INTEGER,
+  created_date TIMESTAMP,
+  modified_date TIMESTAMP
+);
+
+Step 3: เพิ่มข้อมูลตัวอย่างในตาราง categories และ products
+---
+categories
+---
+INSERT INTO categories (
+    category_name,
+    category_status
+)
+
+VALUES
+(
+    'Mobile',
+    1
+),
+(
+    'Tablet',
+    1
+),
+(
+    'Smart Watch',
+    1
+),
+(
+    'Labtop',
+    1
+);
+
+products
+---
+INSERT INTO products (
+    category_id,
+    product_name,
+    unit_price,
+    product_picture,
+    unit_in_stock,
+    created_date,
+    modified_date
+)
+
+VALUES
+(
+    1,
+    'iPhone 13 Pro Max',
+    55000,
+    'https://www.mxphone.com/wp-content/uploads/2021/04/41117-79579-210401-iPhone12ProMax-xl-1200x675.jpg',
+    3,
+    '2021-11-22T00:00:00',
+    '2021-11-22T00:00:00'
+),
+(
+    2,
+    'iPad Pro 2021',
+    18500,
+    'https://cdn.siamphone.com/spec/apple/images/ipad_pro_12.9%E2%80%91inch/com_1.jpg',
+    10,
+    '2021-11-20T00:00:00',
+    '2021-11-20T00:00:00'
+),
+(
+    3,
+    'Airpods Pro',
+    12500,
+    'https://support.apple.com/library/content/dam/edam/applecare/images/en_US/airpods/airpods-pro-2gen-front-case.png',
+    5,
+    '2021-11-10T10:30:00',
+    '2021-11-12T10:30:00'
+),
+(
+    4,
+    'Macbook Pro M1',
+    45000,
+    'https://cdn.mos.cms.futurecdn.net/iYCQTPgBSdDmkYESfPkunh.jpg',
+    10,
+    '2021-11-15T10:30:00',
+    '2021-11-15T10:30:00'
+);
+
+
+Step 4: คำสั่งสร้างโปรเจกต์ Web API แบบ Controller-base APIs
+---
+dotnet new webapi --use-controllers -o StoreAPI
+
+Step 5: เปิดเข้า VSCode
+---
+code StoreAPI -r
+
+Step 6: ทดสอบรันโปรเจ็กต์
+---
+dotnet watch run
+
+Step 7: Install NuGet Packages for EF8 and Postgresql
+---
+dotnet add package Microsoft.EntityFrameworkCore --version 8.0.0
+
+dotnet add package Microsoft.EntityFrameworkCore.Design --version 8.0.0
+
+dotnet add package Npgsql.EntityFrameworkCore.PostgreSQL --version 8.0.0
+
+dotnet add package Microsoft.EntityFrameworkCore.Relational --version 8.0.0
+
+Step 8: ติดตั้งชุดคำสั่ง dotnet-ef cli
+---
+ตรวจเช็คว่ามีการติดตั้ง ไว้หรือยัง
+dotnet ef --version
+
+หากยังไม่พบให้ทำการติดตั้งก่อน
+dotnet tool install --global dotnet-ef
+
+อัพเดทเวอร์ชันล่าสุด
+dotnet tool update --global dotnet-ef
+
+Step 9: การสร้าง Scaffold-DbContext ( Reverse engineer)
+---
+Windows Command Prompt
+---
+dotnet ef dbcontext scaffold "Host=localhost;Port=5432;Database=storedb;Username=postgres;Password=123456" ^
+Npgsql.EntityFrameworkCore.PostgreSQL ^
+--output-dir "Models" ^
+--context ApplicationDbContext ^
+--use-database-names ^
+--no-onconfiguring ^
+--force
+
+
+MacOS/Linux Terminal
+---
+dotnet ef dbcontext scaffold "Host=localhost;Port=5432;Database=storedb;Username=postgres;Password=123456" \
+Npgsql.EntityFrameworkCore.PostgreSQL \
+--output-dir "Models" \
+--context ApplicationDbContext \
+--use-database-names \
+--no-onconfiguring \
+--force
+
+Step 10: ย้ายไฟล์ ApplicationDbContext ไปไว้ยัง Data/ApplicationDbContext.cs
+--
+using System;
+using System.Collections.Generic;
+using Microsoft.EntityFrameworkCore;
+using StoreAPI.Models;
+
+namespace StoreAPI.Data;
+
+public partial class ApplicationDbContext : DbContext
+{
+    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
+        : base(options)
+    {
+    }
+
+    public virtual DbSet<category> categories { get; set; }
+
+    public virtual DbSet<product> products { get; set; }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<category>(entity =>
+        {
+            entity.HasKey(e => e.category_id).HasName("categories_pkey");
+
+            entity.Property(e => e.category_name).HasMaxLength(128);
+        });
+
+        modelBuilder.Entity<product>(entity =>
+        {
+            entity.HasKey(e => e.product_id).HasName("products_pkey");
+
+            entity.Property(e => e.created_date).HasColumnType("timestamp without time zone");
+            entity.Property(e => e.modified_date).HasColumnType("timestamp without time zone");
+            entity.Property(e => e.product_name).HasMaxLength(50);
+            entity.Property(e => e.product_picture).HasMaxLength(1024);
+            entity.Property(e => e.unit_price).HasPrecision(18);
+
+            entity.HasOne(d => d.category).WithMany(p => p.products)
+                .HasForeignKey(d => d.category_id)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("products_category_id_fkey");
+        });
+
+        OnModelCreatingPartial(modelBuilder);
+    }
+
+    partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
+}
+
+
+Step 11: กำหนด Connection String สำหรับเชื่อมต่อฐานข้อมูล PostgreSQL ที่ไฟล์ appsettings.json
+---
+{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+    }
+  },
+  "ConnectionStrings": {
+    "DefaultConnection": "Host=localhost;Port=5432;Database=storedb;Username=postgres;Password=123456"
+  },
+  "AllowedHosts": "*"
+}
+
+Step 12: เพิ่ม Config "DefaultConnection" ที่ไฟล์ Program.cs
+---
+using Microsoft.EntityFrameworkCore;
+using StoreAPI.Data;
+.
+.
+// For Entity Framework with Npgsql
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+{
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));
+});
+
+Step 13: สร้าง ProductController.cs
+---
+using Microsoft.AspNetCore.Mvc;
+using StoreAPI.Data;
+using StoreAPI.Models;
+
+namespace StoreAPI.Controllers;
+
+[ApiController]
+[Route("api/[controller]")]
+public class ProductController : ControllerBase
+{
+    // สร้าง Object ของ ApplicationDbContext
+    private readonly ApplicationDbContext _context;
+
+    // สร้าง Constructor รับค่า ApplicationDbContext
+    public ProductController(ApplicationDbContext context)
+    {
+        _context = context;
+    }
+
+    // ทดสอบเขียนฟังก์ชันการเชื่อมต่อ database
+    // GET: /api/Product/testconnectdb
+    [HttpGet("testconnectdb")]
+    public void TestConnection()
+    {
+        // ถ้าเชื่อมต่อได้จะแสดงข้อความ "Connected"
+        if (_context.Database.CanConnect())
+        {
+            Response.WriteAsync("Connected");
+        }
+        // ถ้าเชื่อมต่อไม่ได้จะแสดงข้อความ "Not Connected"
+        else
+        {
+            Response.WriteAsync("Not Connected");
+        }
+    }
+
+    // ฟังก์ชันสำหรับการดึงข้อมูลสินค้าทั้งหมด
+    // GET: /api/Product
+    [HttpGet]
+    public ActionResult<product> GetProducts()
+    {
+        // LINQ สำหรับการดึงข้อมูลจากตาราง Products ทั้งหมด
+        // var products = _context.products.ToList();
+
+        // แบบอ่านที่มีเงื่อนไข
+        // var products = _context.products.Where(p => p.unit_price > 45000).ToList();
+
+        // แบบเชื่อมกับตารางอื่น products เชื่อมกับ categories
+        var products = _context.products
+            .Join(
+                _context.categories,
+                p => p.category_id,
+                c => c.category_id,
+                (p, c) => new
+                {
+                    p.product_id,
+                    p.product_name,
+                    p.unit_price,
+                    p.unit_in_stock,
+                    c.category_name
+                }
+            ).ToList();
+
+        // ส่งข้อมูลกลับไปให้ผู้ใช้งาน
+        return Ok(products);
+    }
+
+    // ฟังก์ชันสำหรับการดึงข้อมูลสินค้าตาม id
+    // GET: /api/Product/{id}
+    [HttpGet("{id}")]
+    public ActionResult<product> GetProduct(int id)
+    {
+        // LINQ สำหรับการดึงข้อมูลจากตาราง Products ตาม id
+        var product = _context.products.FirstOrDefault(p => p.product_id == id);
+
+        // ถ้าไม่พบข้อมูลจะแสดงข้อความ Not Found
+        if (product == null)
+        {
+            return NotFound();
+        }
+
+        // ส่งข้อมูลกลับไปให้ผู้ใช้งาน
+        return Ok(product);
+    }
+
+    // ฟังก์ชันสำหรับการเพิ่มข้อมูลสินค้า
+    // POST: /api/Product
+    [HttpPost]
+    public ActionResult<product> CreateProduct(product product)
+    {
+        // เพิ่มข้อมูลลงในตาราง Products
+        _context.products.Add(product);
+        _context.SaveChanges();
+
+        // ส่งข้อมูลกลับไปให้ผู้ใช้
+        return Ok(product);
+    }
+
+    // ฟังก์ชันสำหรับการแก้ไขข้อมูลสินค้า
+    // PUT: /api/Product/{id}
+    [HttpPut("{id}")]
+    public ActionResult<product> UpdateProduct(int id, product product)
+    {
+        // ดึงข้อมูลสินค้าตาม id
+        var existingProduct = _context.products.FirstOrDefault(p => p.product_id == id);
+
+        // ถ้าไม่พบข้อมูลจะแสดงข้อความ Not Found
+        if (existingProduct == null)
+        {
+            return NotFound();
+        }
+
+        // แก้ไขข้อมูลสินค้า
+        existingProduct.product_name = product.product_name;
+        existingProduct.unit_price = product.unit_price;
+        existingProduct.unit_in_stock = product.unit_in_stock;
+        existingProduct.category_id = product.category_id;
+
+        // บันทึกข้อมูล
+        _context.SaveChanges();
+
+        // ส่งข้อมูลกลับไปให้ผู้ใช้
+        return Ok(existingProduct);
+    }
+
+    // ฟังก์ชันสำหรับการลบข้อมูลสินค้า
+    // DELETE: /api/Product/{id}
+    [HttpDelete("{id}")]
+    public ActionResult<product> DeleteProduct(int id)
+    {
+        // ดึงข้อมูลสินค้าตาม id
+        var product = _context.products.FirstOrDefault(p => p.product_id == id);
+
+        // ถ้าไม่พบข้อมูลจะแสดงข้อความ Not Found
+        if (product == null)
+        {
+            return NotFound();
+        }
+
+        // ลบข้อมูล
+        _context.products.Remove(product);
+        _context.SaveChanges();
+
+        // ส่งข้อมูลกลับไปให้ผู้ใช้
+        return Ok(product);
+    }
+
+}
+
+-------------------------------------------------------
+✈ DAY 3
+5: .NET 8 Rest API CRUD Upload File
+6: .NET 8 JWT and Swagger
+-------------------------------------------------------
+เรื่องการ Authentication ด้วย JWT
+---
+Step 1: ติดตั้ง Package ที่จำเป็นต้องใช้
+---
+dotnet add package Microsoft.AspNetCore.Authentication.JwtBearer --version 8.0.0
+
+dotnet add package Microsoft.EntityFrameworkCore.Tools --version 8.0.0
+
+dotnet add package Microsoft.AspNetCore.Identity.EntityFrameworkCore --version 8.0.0
+
+Step 2: สร้างไฟล์ RegisterModel.cs
+---
+using System.ComponentModel.DataAnnotations;
+
+namespace StoreAPI.Models;
+
+public class RegisterModel
+    {
+    [Required(ErrorMessage = "User Name is required")]
+    public required string Username { get; set; }
+
+    [EmailAddress]
+    [Required(ErrorMessage = "Email is required")]
+    public required string Email { get; set; }
+
+    [Required(ErrorMessage = "Password is required")]
+    public required string Password { get; set; }
+}
+
+Step 3: สร้างไฟล์ LoginModel.cs
+---
+using System.ComponentModel.DataAnnotations;
+
+namespace StoreAPI.Models;
+
+public class LoginModel
+{
+    [Required(ErrorMessage = "User Name is required")]
+    public string? Username { get; set; }
+
+    [Required(ErrorMessage = "Password is required")]
+    public string? Password { get; set; }
+}
+
+
+Step 4: สร้างไฟล์ UserRoles.cs
+---
+namespace StoreAPI.Models;
+
+public class UserRoles
+{
+    public const string Admin = "Admin";
+    public const string User = "User";
+}
+
+Step 5: สร้างไฟล์ Response.cs ไว้สำหรับแสดงผลลัพธ์จาก API
+----
+namespace StoreAPI.Models;
+
+public class Response
+{
+    public string? Status { get; set; }
+    public string? Message { get; set; }
+}
+
+Step 6: สร้าง Controller ชื่อ "AuthenticateController"
+---
+Controllers/AuthenticateController.cs
+
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
+using StoreAPI.Models;
+
+namespace StoreAPI.Controllers;
+
+[ApiController]
+[Route("api/[controller]")]
+public class AuthenticateController : ControllerBase
+{
+
+    private readonly UserManager<IdentityUser> _userManager;
+    private readonly RoleManager<IdentityRole> _roleManager;
+    private readonly IConfiguration _configuration;
+
+    // Constructor
+    public AuthenticateController(
+        UserManager<IdentityUser> userManager,
+        RoleManager<IdentityRole> roleManager,
+        IConfiguration configuration)
+    {
+        _userManager = userManager;
+        _roleManager = roleManager;
+        _configuration = configuration;
+    }
+
+    // Register for normal user
+    [HttpPost]
+    [Route("register")]
+    public async Task<IActionResult> Register([FromBody] RegisterModel model)
+    {
+        // เช็คว่ามี username นี้ในระบบแล้วหรือไม่
+        var userExist = await _userManager.FindByNameAsync(model.Username);
+        if (userExist != null)
+        {
+            return StatusCode(
+                StatusCodes.Status500InternalServerError, 
+                new Response { 
+                    Status = "Error", 
+                    Message = "User already exist!" 
+                }
+            );
+        }
+
+        // เช็คว่ามี email นี้ในระบบแล้วหรือไม่
+        IdentityUser user = new()
+        {
+            Email = model.Email,
+            SecurityStamp = Guid.NewGuid().ToString(),
+            UserName = model.Username
+        };
+
+        // สร้าง user ใหม่
+        var result = await _userManager.CreateAsync(user, model.Password);
+
+        // ถ้าสร้างไม่สำเร็จ
+        if (!result.Succeeded){
+            return StatusCode(
+                StatusCodes.Status500InternalServerError, 
+                new Response { 
+                    Status = "Error", 
+                    Message = "User creation failed! Please check user details and try again." 
+                }
+            );
+        }
+
+        // สร้าง user สำเร็จ
+        return Ok(new Response { 
+            Status = "Success", 
+            Message = "User created successfully!" 
+        });
+    }
+
+    // Register for admin
+    [HttpPost]
+    [Route("register-admin")]
+    public async Task<IActionResult> RegisterAdmin([FromBody] RegisterModel model)
+    {
+        var userExists = await _userManager.FindByNameAsync(model.Username!);
+        if (userExists != null)
+            return StatusCode(
+                StatusCodes.Status500InternalServerError, 
+                new Response { 
+                    Status = "Error", 
+                    Message = "User already exists!" 
+                }
+            );
+
+        IdentityUser user = new()
+        {
+            Email = model.Email,
+            SecurityStamp = Guid.NewGuid().ToString(),
+            UserName = model.Username
+        };
+
+        var result = await _userManager.CreateAsync(user, model.Password!);
+
+        if (!result.Succeeded)
+            return StatusCode(
+                StatusCodes.Status500InternalServerError, 
+                new Response { 
+                    Status = "Error", 
+                    Message = "User creation failed! Please check user details and try again." 
+                }
+            );
+
+        if (!await _roleManager.RoleExistsAsync(UserRoles.Admin))
+            await _roleManager.CreateAsync(new IdentityRole(UserRoles.Admin));
+        if (!await _roleManager.RoleExistsAsync(UserRoles.Manager))
+            await _roleManager.CreateAsync(new IdentityRole(UserRoles.Manager));
+        if (!await _roleManager.RoleExistsAsync(UserRoles.User))
+            await _roleManager.CreateAsync(new IdentityRole(UserRoles.User));
+
+        return Ok(new Response { Status = "Success", Message = "User created successfully!" });
+    }
+
+    // Login
+    [HttpPost]
+    [Route("login")]
+    public async Task<IActionResult> Login([FromBody] LoginModel model)
+    {
+        var user = await _userManager.FindByNameAsync(model.Username!);
+
+        // ถ้า login สำเร็จ
+        if (user != null && await _userManager.CheckPasswordAsync(user, model.Password!))
+        {
+            var userRoles = await _userManager.GetRolesAsync(user);
+
+            var authClaims = new List<Claim>
+            {
+                new Claim(ClaimTypes.Name, user.UserName!),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+            };
+
+            foreach (var userRole in userRoles)
+            {
+                authClaims.Add(new Claim(ClaimTypes.Role, userRole));
+            }
+
+            var token = GetToken(authClaims);
+
+            return Ok(new
+            {
+                token = new JwtSecurityTokenHandler().WriteToken(token),
+                expiration = token.ValidTo
+            });
+        }
+
+        // ถ้า login ไม่สำเร็จ
+        return Unauthorized();
+    }
+
+    // Method for generating JWT token
+    private JwtSecurityToken GetToken(List<Claim> authClaims)
+    {
+        var authSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT:Secret"]!));
+
+        var token = new JwtSecurityToken(
+            issuer: _configuration["JWT:ValidIssuer"],
+            audience: _configuration["JWT:ValidAudience"],
+            expires: DateTime.Now.AddDays(1),
+            claims: authClaims,
+            signingCredentials: new SigningCredentials(authSigningKey, SecurityAlgorithms.HmacSha256)
+        );
+        return token; 
+    }
+}
+
+Step 7: แก้ไขไฟล์ Data/ApplicationDbContext.cs
+---
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
+using StoreAPI.Models;
+
+namespace StoreAPI.Data;
+public partial class ApplicationDbContext : IdentityDbContext<IdentityUser>
+{
+    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
+        : base(options)
+    {
+    }
+
+    public virtual DbSet<category> categories { get; set; }
+
+    public virtual DbSet<product> products { get; set; }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        // เพิ่มส่วนนี้เข้าไป
+        base.OnModelCreating(modelBuilder);
+
+        modelBuilder.Entity<category>(entity =>
+        {
+            entity.HasKey(e => e.category_id).HasName("categories_pkey");
+
+            entity.Property(e => e.category_name).HasMaxLength(128);
+        });
+
+        modelBuilder.Entity<product>(entity =>
+        {
+            entity.HasKey(e => e.product_id).HasName("products_pkey");
+
+            entity.Property(e => e.created_date).HasColumnType("timestamp without time zone");
+            entity.Property(e => e.modified_date).HasColumnType("timestamp without time zone");
+            entity.Property(e => e.product_name).HasMaxLength(50);
+            entity.Property(e => e.product_picture).HasMaxLength(1024);
+            entity.Property(e => e.unit_price).HasPrecision(18);
+
+            entity.HasOne(d => d.category).WithMany(p => p.products)
+                .HasForeignKey(d => d.category_id)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("products_category_id_fkey");
+        });
+
+        OnModelCreatingPartial(modelBuilder);
+    }
+
+    partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
+}
+
+
+Step 8: เพิ่ม JWT ที่ไฟล์ appsettings.json
+---
+"JWT": {  
+    "ValidAudience": "http://localhost:4200",  
+    "ValidIssuer": "http://localhost:21785",  
+    "Secret": "ByYM000OLlMQG6VVVp1OH7Xzyr7gHuw1qvUC5dcGt3SNM"  
+  },
+
+Step 9: เพิ่ม Config ของ JWT ในไฟล์ Program.cs
+---
+.
+.
+// Adding Identity
+builder.Services.AddIdentity<IdentityUser, IdentityRole>()
+    .AddEntityFrameworkStores<ApplicationDbContext>()
+    .AddDefaultTokenProviders();
+
+// Adding Authentication
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+// Adding Jwt Bearer
+.AddJwtBearer(options =>
+{
+    options.SaveToken = true;
+    options.RequireHttpsMetadata = false;
+    options.TokenValidationParameters = new TokenValidationParameters()
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidAudience = builder.Configuration.GetSection("JWT:ValidAudience").Value!,
+        ValidIssuer = builder.Configuration.GetSection("JWT:ValidIssuer").Value!,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration.GetSection("JWT:Secret").Value!))
+    };
+});
+
+.
+.
+// Add Authentication
+app.UseAuthentication();
+
+Step 10: เพิ่มไฟล์ Migration สำหรับ Auth
+---
+dotnet ef migrations add auth --context ApplicationDbContext
+
+Step 11: ทำการ Migrate ตัว Migration ให้เป็นฐานข้อมูล
+---
+dotnet ef database update
+
+-------------------------------------------------------
+✈ DAY 4
+Section 6:  .NET 8 JWT and Swagger (ต่อ)
+-------------------------------------------------------
+Step 1: เพิ่มข้อมูลเข้าตาราง categories และ products
+---
+categories
+---
+INSERT INTO categories (
+    category_name,
+    category_status
+)
+
+VALUES
+(
+    'Mobile',
+    1
+),
+(
+    'Tablet',
+    1
+),
+(
+    'Smart Watch',
+    1
+),
+(
+    'Labtop',
+    1
+);
+
+products
+---
+INSERT INTO products (
+    category_id,
+    product_name,
+    unit_price,
+    product_picture,
+    unit_in_stock,
+    created_date,
+    modified_date
+)
+
+VALUES
+(
+    1,
+    'iPhone 13 Pro Max',
+    55000,
+    'https://www.mxphone.com/wp-content/uploads/2021/04/41117-79579-210401-iPhone12ProMax-xl-1200x675.jpg',
+    3,
+    '2021-11-22T00:00:00',
+    '2021-11-22T00:00:00'
+),
+(
+    2,
+    'iPad Pro 2021',
+    18500,
+    'https://cdn.siamphone.com/spec/apple/images/ipad_pro_12.9%E2%80%91inch/com_1.jpg',
+    10,
+    '2021-11-20T00:00:00',
+    '2021-11-20T00:00:00'
+),
+(
+    3,
+    'Airpods Pro',
+    12500,
+    'https://support.apple.com/library/content/dam/edam/applecare/images/en_US/airpods/airpods-pro-2gen-front-case.png',
+    5,
+    '2021-11-10T10:30:00',
+    '2021-11-12T10:30:00'
+),
+(
+    4,
+    'Macbook Pro M1',
+    45000,
+    'https://cdn.mos.cms.futurecdn.net/iYCQTPgBSdDmkYESfPkunh.jpg',
+    10,
+    '2021-11-15T10:30:00',
+    '2021-11-15T10:30:00'
+);
+
+Step 2: ทดสอบรันโปรเจ็กต์และเรียกทำงานกับ register , register-admin และ login
+---
+ทดสอบ Register
+---
+http://localhost:5053/api/Authenticate/register
+
+Payload:
+---
+{
+  "username": "iamsamit",
+  "email": "samit@email.com",
+  "password": "Samit@1234"
+}
+
+จะได้ Result
+---
+{
+  "status": "Success",
+  "message": "User created successfully!"
+}
+
+ทดสอบ Register Admin
+---
+http://localhost:5143/api/Authenticate/register-admin
+
+Payload:
+---
+{
+  "username": "iamadmin",
+  "email": "admin@email.com",
+  "password": "Admin@1234"
+}
+
+จะได้ Result
+---
+{
+  "status": "Success",
+  "message": "User created successfully!"
+}
+
+ทดสอบ Login
+---
+http://localhost:5156/api/Authenticate/login
+
+Payload:
+---
+{
+  "username": "iamsamit",
+  "password": "Samit@1234"
+}
+
+จะได้ Result
+---
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiaWFtc2FtaXQiLCJqdGkiOiI3ZGYxYmY3Ni1mNTVhLTQ2MTEtOGI3Zi00MTYyZmIxZjYyOGYiLCJleHAiOjE3MTE2Mzc3NTYsImlzcyI6IioiLCJhdWQiOiIqIn0.7qgVoMcGLu24qsffNcKa9Bi70-aPAykzlwBtE5dbF64",
+  "expiration": "2024-03-28T14:55:56Z"
+}
+
+Step 3: ทำการกำหนด Authorize ให้กับ Controller หรือ Method ที่ต้องการ
+---
+แก้ไฟล์ ProductController.cs เพิ่มส่วนของ 
+[Authorize]
+---
+using Microsoft.AspNetCore.Authorization;
+.
+.
+
+[Authorize] // กำหนดให้ต้อง Login ก่อนเข้าถึง API นี้
+.
+.
+public class ProductController: ControllerBase
+{
+.
+.
+}
+
+Step 4: ทำการกำหนด Authorize JWT ให้แสดงผลที่ Swagger
+---
+using Microsoft.OpenApi.Models;
+
+builder.Services.AddSwaggerGen(opt => 
+    {
+        opt.SwaggerDoc(
+            "v1",
+            new Microsoft.OpenApi.Models.OpenApiInfo
+            {
+                Title = "Store API with .NET 8 and PostgreSQL",
+                Description = "Sample Store API with .NET 8 and PostgreSQL",
+            }
+        );
+
+        opt.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme()
+        {
+            Name = "Authorization",
+            Type = SecuritySchemeType.ApiKey,
+            Scheme = "Bearer",
+            BearerFormat = "JWT",
+            In = ParameterLocation.Header,
+            Description = "JWT Authorization header using the Bearer scheme. \r\n\r\n Enter 'Bearer' [space] and then your token in the text input below.\r\n\r\nExample: \"Bearer 12345abcdef\"",
+        });
+
+        opt.AddSecurityRequirement(new OpenApiSecurityRequirement
+        {
+            {
+                new OpenApiSecurityScheme
+                {
+                    Reference = new OpenApiReference
+                    {
+                        Type = ReferenceType.SecurityScheme,
+                        Id = "Bearer"
+                    }
+                },
+                new string[] {}
+
+            }
+        });
+    }
+);
+
+Step 5: แก้ไขไฟล์ AuthenticateController.cs เพิ่ม register-roles, register-manager , refresh-token and logout
+---
+    // Register Role
+    [HttpPost]
+    [Route("register-role")]
+    public async Task<IActionResult> RegisterRole([FromBody] RegisterRoleModel model)
+    {
+        if (!await _roleManager.RoleExistsAsync(model.Role))
+            await _roleManager.CreateAsync(new IdentityRole(model.Role));
+
+        return Ok(new Response { Status = "Success", Message = "Role created successfully!" });
+    }
+
+---
+// Register for manager
+    [HttpPost]
+    [Route("register-manager")]
+    public async Task<IActionResult> RegisterManager([FromBody] RegisterModel model)
+    {
+        var userExists = await _userManager.FindByNameAsync(model.Username!);
+        if (userExists != null)
+            return StatusCode(
+                StatusCodes.Status500InternalServerError, 
+                new Response { 
+                    Status = "Error", 
+                    Message = "User already exists!" 
+                }
+            );
+
+        IdentityUser user = new()
+        {
+            Email = model.Email,
+            SecurityStamp = Guid.NewGuid().ToString(),
+            UserName = model.Username
+        };
+
+        var result = await _userManager.CreateAsync(user, model.Password!);
+
+        if (!result.Succeeded)
+            return StatusCode(
+                StatusCodes.Status500InternalServerError, 
+                new Response { 
+                    Status = "Error", 
+                    Message = "User creation failed! Please check user details and try again." 
+                }
+            );
+
+        if (!await _roleManager.RoleExistsAsync(UserRoles.Admin))
+            await _roleManager.CreateAsync(new IdentityRole(UserRoles.Admin));
+        if (!await _roleManager.RoleExistsAsync(UserRoles.Manager))
+            await _roleManager.CreateAsync(new IdentityRole(UserRoles.Manager));
+        if (!await _roleManager.RoleExistsAsync(UserRoles.User))
+            await _roleManager.CreateAsync(new IdentityRole(UserRoles.User));
+
+        return Ok(new Response { Status = "Success", Message = "User created successfully!" });
+    }
+
+---
+// Refresh Token
+    [HttpPost]
+    [Route("refresh-token")]
+    public IActionResult RefreshToken([FromBody] RefreshTokenModel model)
+    {
+        var authHeader = Request.Headers["Authorization"];
+        if (authHeader.ToString().StartsWith("Bearer"))
+        {
+            var token = authHeader.ToString().Substring(7);
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var key = Encoding.ASCII.GetBytes(_configuration["JWT:Secret"]!);
+
+            try
+            {
+                tokenHandler.ValidateToken(token, new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(key),
+                    ValidateIssuer = false,
+                    ValidateAudience = false,
+                    ValidateLifetime = false,
+                    ClockSkew = TimeSpan.Zero
+                }, out SecurityToken validatedToken);
+
+                var jwtToken = (JwtSecurityToken)validatedToken;
+                var user = new
+                {
+                    Name = jwtToken.Claims.First(x => x.Type == "unique_name").Value,
+                    Role = jwtToken.Claims.First(x => x.Type == ClaimTypes.Role).Value
+                };
+
+                var authClaims = new List<Claim>
+                {
+                    new Claim(ClaimTypes.Name, user.Name),
+                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                    new Claim(ClaimTypes.Role, user.Role)
+                };
+
+                var newToken = GetToken(authClaims);
+                return Ok(new
+                {
+                    token = new JwtSecurityTokenHandler().WriteToken(newToken),
+                    expiration = newToken.ValidTo
+                });
+            }
+            catch
+            {
+                return Unauthorized();
+            }
+        }
+
+        return Unauthorized();
+    }
+
+---
+    [HttpPost]
+    [Route("logout")]
+    public async Task<IActionResult> Logout()
+    {
+        var userName = User.Identity?.Name;
+        if (userName != null)
+        {
+            var user = await _userManager.FindByNameAsync(userName);
+            if (user != null)
+            {
+                await _userManager.UpdateSecurityStampAsync(user);
+                return Ok(new Response { Status = "Success", Message = "User logged out!" });
+            }
+        }
+        return Ok();
+    }
+---
+
+-------------------------------------------------------
+✈ DAY 5
+Section 7: แนะนำและอัพเดทสิ่งใหม่ใน NextJS 14 Framework
+Section 8: เรียนรู้การทำ Router แบบใหม่ NextJS 14 AppRouter
+-------------------------------------------------------
+แนะนำและอัพเดทสิ่งใหม่ใน NextJS 14 Framework
+---
+What new in Next.JS 13 
+- App Directory
+- Layout
+- React Server Component
+- Streaming
+- Turbopack
+- next/image
+- @next/font
+- next/link
+What new in Next.JS 14
+- Tubopack
+- Server Action (stable)
+- Partial Prerendering
+
+เรียนรู้การทำ Router แบบใหม่ NextJS 14 AppRouter
+---
+ในปัจจุบัน (29/3/24) แอปพลิเคชัน Next.js ของคุณมีตัวเลือกเราเตอร์ 2 แบบ ดังนี้
+
+App router - สไตล์ใหม่
+Page router - สไตล์เก่า
+
+สำหรับแอปพลิเคชันใหม่ เราแนะนำให้ใช้ App Router เราเตอร์ตัวนี้รองรับฟีเจอร์ล่าสุดของ React และเป็นการพัฒนาต่อยอดมาจาก Page Router โดยคำนึงถึงเสียงตอบรับจากผู้ใช้งาน
+
+Next.js 13 ได้แนะนำ App Router ซึ่งเป็นตัวเลือกใหม่สำหรับการสร้าง Routing แต่ Pages Router ยังคงใช้งานได้ในเวอร์ชันใหม่
+
+จุดประสงค์ที่ต่างกัน
+
+App Router: เหมาะสำหรับสร้าง Routing ของหน้าเว็บแบบไดนามิกที่ต้องดึงข้อมูล
+Pages Router: เหมาะสำหรับสร้าง Routing ของหน้าเว็บแบบคงที่ที่ไม่ต้องดึงข้อมูล
+ความรับผิดชอบ
+
+App Router: ควบคุมการ Routing และการนำทางโดยรวมของทั้งแอปพลิเคชัน
+Pages Router: เน้นการ Routing ภายในหน้าเว็บแต่ละหน้า
+การใช้งาน useRouter
+
+สำหรับ Pages Router (pages folder) ให้ใช้ useRouter จาก next/router
+สำหรับ App Router (app folder) ให้ใช้ useRouter จาก next/navigation
+
+ขั้นตอน New Project Next.JS 14 with App Router
+---
+Step 0: เช็ค Node Version ต้อง 18.17 ขึ้นไป
+---
+node -v
+
+Step 1: คำสั่งในการขึ้นโปรเจ็กต์ Next.JS 14
+---
+เวอร์ชั่นล่าสุด
+---
+npx create-next-app@latest
+
+ระบุเวอร์ชั่นที่ต้องการ
+---
+npx create-next-app@14.1.4
+
+✔ What is your project named? …sample-next14-app-router
+✔ Would you like to use TypeScript? … Yes
+✔ Would you like to use ESLint? …  Yes
+✔ Would you like to use Tailwind CSS? … Yes
+✔ Would you like to use `src/` directory? … Yes
+✔ Would you like to use App Router? (recommended) … Yes
+✔ Would you like to customize the default import alias (@/*)? … No
+
+Step 2: เปลี่ยน path เข้าโปรเจ็ตก์
+---
+cd sample-next14-app-router
+
+Step 3: สั่ง run โปรเจ็กต์แบบ Development mode
+---
+npm run dev
+
+Step 4: สั่ง build โปรเจ็กต์
+---
+npm run build
+
+สั่ง run โปรเจ็กต์แบบ Production mode
+---
+npm start
+
+Step 5: เปิดโปรเจ็กต์เข้า VS Code
+---
+code .
+
+Step 6: แก้โค้ดหน้า page.tsx ลบของเดิมทั้งหมด และใส่โค้ดด้านล่างนี้ลงไป
+---
+import React from 'react'
+
+type Props = {}
+
+function Home({}: Props) {
+  return (
+    <div>
+      <h1 className='text-2xl'>Home Page</h1>
+      <p>Lorem ipsum dolor sit amet consectetur, adipisicing elit. Assumenda itaque, similique, omnis corporis deleniti laboriosam voluptate veritatis nulla molestiae quo aliquid officia inventore neque suscipit, provident praesentium hic perspiciatis. Rem!</p>
+    </div>
+  )
+}
+
+export default Home
+
+Step 7: แก้ไขไฟล์ global.css โดยลบของเดิมเหลือไว้เพียง
+---
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+-------------------------------------------------------
+✈ DAY 6
+-------------------------------------------------------
+Section 8: เรียนรู้การทำ Router แบบใหม่ NextJS 14 AppRouter (ต่อ)
+Section 9: ออกแบบ UI ใน NextJS 14 ร่วมกับ Tailwind CSS
+---
+Step 0: คำสั่งในการขึ้นโปรเจ็กต์ Next.JS 14
+---
+npx create-next-app@14.1.4
+
+✔ What is your project named? …next-tailwind-approuter
+✔ Would you like to use TypeScript? … Yes
+✔ Would you like to use ESLint? …  Yes
+✔ Would you like to use Tailwind CSS? … Yes
+✔ Would you like to use `src/` directory? … Yes
+✔ Would you like to use App Router? (recommended) … Yes
+✔ Would you like to customize the default import alias (@/*)? … No
+
+เปิดเข้า VSCode
+---
+code next-tailwind-approuter -r
+
+ทดสอบรันโปรเจ็กต์ดูก่อน
+---
+npm run dev
+
+Step 1: ติดตั้ง Library สำหรับทำ UI ด้วย Preline
+---
+npm i preline@2.1.0
+
+Step 2: Config Preline in tailwind.config.ts
+---
+module.exports = {
+  content: [
+      './node_modules/preline/preline.js',
+  ],
+  plugins: [
+      require('preline/plugin'),
+  ],
+}
+
+Step 3: Create Preline UI JavaScript loader
+---
+projects_root_directory/
+app/components/
+PrelineScript.tsx
+---
+"use client";
+
+import { usePathname } from "next/navigation";
+import { useEffect } from "react";
+
+import { IStaticMethods } from "preline/preline";
+declare global {
+  interface Window {
+    HSStaticMethods: IStaticMethods;
+  }
+}
+
+export default function PrelineScript() {
+  const path = usePathname();
+
+  useEffect(() => {
+    const loadPreline = async () => {
+      await import("preline/preline");
+
+      window.HSStaticMethods.autoInit();
+    };
+
+    loadPreline();
+  }, [path]);
+
+  return null;
+}
+
+Step 4: Add the Preline UI JavaScript loader
+---
+projects_root_directory/
+app/layout.tsx
+---
+...
+
+import PrelineScript from "./components/PrelineScript";
+
+...
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <html>
+      ...
+
+      <PrelineScript />
+    </html>
+  );
+}
+
+Step 5: Create Navbar.tsx components
+in src/components/front/Navbar.tsx
+---
+export default function Navbar() {
+  return (
+    <header className="flex flex-wrap sm:justify-start sm:flex-nowrap z-50 w-full bg-white border-b border-gray-200 text-sm py-3 sm:py-0 dark:bg-gray-800 dark:border-gray-700">
+        <nav className="relative max-w-7xl w-full mx-auto px-4 sm:flex sm:items-center sm:justify-between sm:px-6 lg:px-8" aria-label="Global">
+            <div className="flex items-center justify-between">
+            <a className="flex-none text-xl font-semibold dark:text-white" href="#" aria-label="Brand">NextBrand</a>
+            <div className="sm:hidden">
+                <button type="button" className="hs-collapse-toggle size-9 flex justify-center items-center text-sm font-semibold rounded-lg border border-gray-200 text-gray-800 hover:bg-gray-100 disabled:opacity-50 disabled:pointer-events-none dark:text-white dark:border-gray-700 dark:hover:bg-gray-700" data-hs-collapse="#navbar-collapse-with-animation" aria-controls="navbar-collapse-with-animation" aria-label="Toggle navigation">
+                <svg className="hs-collapse-open:hidden size-4" width={16} height={16} fill="currentColor" viewBox="0 0 16 16">
+                    <path fillRule="evenodd" d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5z" />
+                </svg>
+                <svg className="hs-collapse-open:block flex-shrink-0 hidden size-4" width={16} height={16} fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z" />
+                </svg>
+                </button>
+            </div>
+            </div>
+            <div id="navbar-collapse-with-animation" className="hs-collapse hidden overflow-hidden transition-all duration-300 basis-full grow sm:block">
+            <div className="flex flex-col gap-y-4 gap-x-0 mt-5 sm:flex-row sm:items-center sm:justify-end sm:gap-y-0 sm:gap-x-7 sm:mt-0 sm:ps-7">
+                <a className="font-medium text-blue-600 sm:py-6 dark:text-blue-500" href="#" aria-current="page">Home</a>
+                <a className="font-medium text-gray-500 hover:text-gray-400 sm:py-6 dark:text-gray-400 dark:hover:text-gray-500" href="#">About</a>
+                <a className="font-medium text-gray-500 hover:text-gray-400 sm:py-6 dark:text-gray-400 dark:hover:text-gray-500" href="#">Blog</a>
+                <a className="font-medium text-gray-500 hover:text-gray-400 sm:py-6 dark:text-gray-400 dark:hover:text-gray-500" href="#">Contact</a>
+                <div className="hs-dropdown [--strategy:static] sm:[--strategy:fixed] [--adaptive:none] sm:[--trigger:hover] sm:py-4">
+                <button type="button" className="flex items-center w-full text-gray-500 hover:text-gray-400 font-medium dark:text-gray-400 dark:hover:text-gray-500 ">
+                    More
+                    <svg className="ms-2 size-2.5 text-gray-600" width={16} height={16} viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M2 5L8.16086 10.6869C8.35239 10.8637 8.64761 10.8637 8.83914 10.6869L15 5" stroke="currentColor" strokeWidth={2} strokeLinecap="round" />
+                    </svg>
+                </button>
+                <div className="hs-dropdown-menu transition-[opacity,margin] duration-[0.1ms] sm:duration-[150ms] hs-dropdown-open:opacity-100 opacity-0 sm:w-48 hidden z-10 bg-white sm:shadow-md rounded-lg p-2 dark:bg-gray-800 sm:dark:border dark:border-gray-700 dark:divide-gray-700 before:absolute top-full sm:border before:-top-5 before:start-0 before:w-full before:h-5">
+                    <a className="flex items-center gap-x-3.5 py-2 px-3 rounded-lg text-sm text-gray-800 hover:bg-gray-100 focus:ring-2 focus:ring-blue-500 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-300" href="#">
+                    About
+                    </a>
+                    <div className="hs-dropdown relative [--strategy:static] sm:[--strategy:absolute] [--adaptive:none] sm:[--trigger:hover]">
+                    <button type="button" className="w-full flex justify-between items-center text-sm text-gray-800 rounded-lg py-2 px-3 hover:bg-gray-100 focus:ring-2 focus:ring-blue-500 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-300">
+                        Sub Menu
+                        <svg className="sm:-rotate-90 ms-2 size-2.5 text-gray-600" width={16} height={16} viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M2 5L8.16086 10.6869C8.35239 10.8637 8.64761 10.8637 8.83914 10.6869L15 5" stroke="currentColor" strokeWidth={2} strokeLinecap="round" />
+                        </svg>
+                    </button>
+                    <div className="hs-dropdown-menu transition-[opacity,margin] duration-[0.1ms] sm:duration-[150ms] hs-dropdown-open:opacity-100 opacity-0 sm:w-48 hidden z-10 sm:mt-2 bg-white sm:shadow-md rounded-lg p-2 dark:bg-gray-800 sm:dark:border dark:border-gray-700 dark:divide-gray-700 before:absolute sm:border before:-end-5 before:top-0 before:h-full before:w-5 top-0 end-full !mx-[10px]">
+                        <a className="flex items-center gap-x-3.5 py-2 px-3 rounded-lg text-sm text-gray-800 hover:bg-gray-100 focus:ring-2 focus:ring-blue-500 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-300" href="#">
+                        About
+                        </a>
+                        <a className="flex items-center gap-x-3.5 py-2 px-3 rounded-lg text-sm text-gray-800 hover:bg-gray-100 focus:ring-2 focus:ring-blue-500 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-300" href="#">
+                        Downloads
+                        </a>
+                        <a className="flex items-center gap-x-3.5 py-2 px-3 rounded-lg text-sm text-gray-800 hover:bg-gray-100 focus:ring-2 focus:ring-blue-500 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-300" href="#">
+                        Team Account
+                        </a>
+                    </div>
+                    </div>
+                    <a className="flex items-center gap-x-3.5 py-2 px-3 rounded-lg text-sm text-gray-800 hover:bg-gray-100 focus:ring-2 focus:ring-blue-500 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-300" href="#">
+                    Downloads
+                    </a>
+                    <a className="flex items-center gap-x-3.5 py-2 px-3 rounded-lg text-sm text-gray-800 hover:bg-gray-100 focus:ring-2 focus:ring-blue-500 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-300" href="#">
+                    Team Account
+                    </a>
+                </div>
+                </div>
+                <a className="flex items-center gap-x-2 font-medium text-gray-500 hover:text-blue-600 sm:border-s sm:border-gray-300 sm:my-6 sm:ps-6 dark:border-gray-700 dark:text-gray-400 dark:hover:text-blue-500" href="#">
+                <svg className="flex-shrink-0 size-4" xmlns="http://www.w3.org/2000/svg" width={16} height={16} fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4zm-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10c-2.29 0-3.516.68-4.168 1.332-.678.678-.83 1.418-.832 1.664h10z" />
+                </svg>
+                Log in
+                </a>
+            </div>
+            </div>
+        </nav>
+    </header>
+  )
+}
+
+Step 6: Use Navbar in src/app/(front)/layout.tsx
+---
+<body className={inter.className}>
+    <Navbar />
+</body>
+
+Step 7: Create Footer.tsx
+---
+export default function Footer() {
+  return (
+    <footer className="mt-auto bg-gray-900 w-full">
+        <div className="mt-auto w-full max-w-[85rem] py-10 px-4 sm:px-6 lg:px-8 lg:pt-20 mx-auto">
+            {/* Grid */}
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
+            <div className="col-span-full lg:col-span-1">
+                <a className="flex-none text-xl font-semibold text-white" href="#" aria-label="Brand">NextBrand</a>
+            </div>
+            {/* End Col */}
+            <div className="col-span-1">
+                <h4 className="font-semibold text-gray-100">Product</h4>
+                <div className="mt-3 grid space-y-3">
+                <p><a className="inline-flex gap-x-2 text-gray-400 hover:text-gray-200" href="#">Pricing</a></p>
+                <p><a className="inline-flex gap-x-2 text-gray-400 hover:text-gray-200" href="#">Changelog</a></p>
+                <p><a className="inline-flex gap-x-2 text-gray-400 hover:text-gray-200" href="#">Docs</a></p>
+                </div>
+            </div>
+            {/* End Col */}
+            <div className="col-span-1">
+                <h4 className="font-semibold text-gray-100">Company</h4>
+                <div className="mt-3 grid space-y-3">
+                <p><a className="inline-flex gap-x-2 text-gray-400 hover:text-gray-200" href="#">About us</a></p>
+                <p><a className="inline-flex gap-x-2 text-gray-400 hover:text-gray-200" href="#">Blog</a></p>
+                <p><a className="inline-flex gap-x-2 text-gray-400 hover:text-gray-200" href="#">Careers</a> <span className="inline ms-1 text-xs bg-blue-700 text-white py-1 px-2 rounded-lg">We're hiring</span></p>
+                <p><a className="inline-flex gap-x-2 text-gray-400 hover:text-gray-200" href="#">Customers</a></p>
+                </div>
+            </div>
+            {/* End Col */}
+            <div className="col-span-2">
+                <h4 className="font-semibold text-gray-100">Stay up to date</h4>
+                <form>
+                <div className="mt-4 flex flex-col items-center gap-2 sm:flex-row sm:gap-3 bg-white rounded-lg p-2 dark:bg-gray-800">
+                    <div className="w-full">
+                    <label htmlFor="hero-input" className="sr-only">Search</label>
+                    <input type="text" id="hero-input" name="hero-input" className="py-3 px-4 block w-full border-transparent rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none dark:bg-slate-900 dark:border-transparent dark:text-gray-400 dark:focus:ring-gray-600" placeholder="Enter your email" />
+                    </div>
+                    <a className="w-full sm:w-auto whitespace-nowrap p-3 inline-flex justify-center items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:pointer-events-none" href="#">
+                    Subscribe
+                    </a>
+                </div>
+                <p className="mt-3 text-sm text-gray-400">
+                    New UI kits or big discounts. Never spam.
+                </p>
+                </form>
+            </div>
+            {/* End Col */}
+            </div>
+            {/* End Grid */}
+            <div className="mt-5 sm:mt-12 grid gap-y-2 sm:gap-y-0 sm:flex sm:justify-between sm:items-center">
+            <div className="flex justify-between items-center">
+                <p className="text-sm text-gray-400">© 2022 Preline. All rights reserved.</p>
+            </div>
+            {/* End Col */}
+            {/* Social Brands */}
+            <div>
+                <a className="size-10 inline-flex justify-center items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent text-white hover:bg-white/10 disabled:opacity-50 disabled:pointer-events-none focus:outline-none focus:ring-1 focus:ring-gray-600" href="#">
+                <svg className="flex-shrink-0 size-4" xmlns="http://www.w3.org/2000/svg" width={16} height={16} fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M16 8.049c0-4.446-3.582-8.05-8-8.05C3.58 0-.002 3.603-.002 8.05c0 4.017 2.926 7.347 6.75 7.951v-5.625h-2.03V8.05H6.75V6.275c0-2.017 1.195-3.131 3.022-3.131.876 0 1.791.157 1.791.157v1.98h-1.009c-.993 0-1.303.621-1.303 1.258v1.51h2.218l-.354 2.326H9.25V16c3.824-.604 6.75-3.934 6.75-7.951z" />
+                </svg>
+                </a>
+                <a className="size-10 inline-flex justify-center items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent text-white hover:bg-white/10 disabled:opacity-50 disabled:pointer-events-none focus:outline-none focus:ring-1 focus:ring-gray-600" href="#">
+                <svg className="flex-shrink-0 size-4" xmlns="http://www.w3.org/2000/svg" width={16} height={16} fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M15.545 6.558a9.42 9.42 0 0 1 .139 1.626c0 2.434-.87 4.492-2.384 5.885h.002C11.978 15.292 10.158 16 8 16A8 8 0 1 1 8 0a7.689 7.689 0 0 1 5.352 2.082l-2.284 2.284A4.347 4.347 0 0 0 8 3.166c-2.087 0-3.86 1.408-4.492 3.304a4.792 4.792 0 0 0 0 3.063h.003c.635 1.893 2.405 3.301 4.492 3.301 1.078 0 2.004-.276 2.722-.764h-.003a3.702 3.702 0 0 0 1.599-2.431H8v-3.08h7.545z" />
+                </svg>
+                </a>
+                <a className="size-10 inline-flex justify-center items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent text-white hover:bg-white/10 disabled:opacity-50 disabled:pointer-events-none focus:outline-none focus:ring-1 focus:ring-gray-600" href="#">
+                <svg className="flex-shrink-0 size-4" xmlns="http://www.w3.org/2000/svg" width={16} height={16} fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M5.026 15c6.038 0 9.341-5.003 9.341-9.334 0-.14 0-.282-.006-.422A6.685 6.685 0 0 0 16 3.542a6.658 6.658 0 0 1-1.889.518 3.301 3.301 0 0 0 1.447-1.817 6.533 6.533 0 0 1-2.087.793A3.286 3.286 0 0 0 7.875 6.03a9.325 9.325 0 0 1-6.767-3.429 3.289 3.289 0 0 0 1.018 4.382A3.323 3.323 0 0 1 .64 6.575v.045a3.288 3.288 0 0 0 2.632 3.218 3.203 3.203 0 0 1-.865.115 3.23 3.23 0 0 1-.614-.057 3.283 3.283 0 0 0 3.067 2.277A6.588 6.588 0 0 1 .78 13.58a6.32 6.32 0 0 1-.78-.045A9.344 9.344 0 0 0 5.026 15z" />
+                </svg>
+                </a>
+                <a className="size-10 inline-flex justify-center items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent text-white hover:bg-white/10 disabled:opacity-50 disabled:pointer-events-none focus:outline-none focus:ring-1 focus:ring-gray-600" href="#">
+                <svg className="flex-shrink-0 size-4" xmlns="http://www.w3.org/2000/svg" width={16} height={16} fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z" />
+                </svg>
+                </a>
+                <a className="size-10 inline-flex justify-center items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent text-white hover:bg-white/10 disabled:opacity-50 disabled:pointer-events-none focus:outline-none focus:ring-1 focus:ring-gray-600" href="#">
+                <svg className="flex-shrink-0 size-4" xmlns="http://www.w3.org/2000/svg" width={16} height={16} fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M3.362 10.11c0 .926-.756 1.681-1.681 1.681S0 11.036 0 10.111C0 9.186.756 8.43 1.68 8.43h1.682v1.68zm.846 0c0-.924.756-1.68 1.681-1.68s1.681.756 1.681 1.68v4.21c0 .924-.756 1.68-1.68 1.68a1.685 1.685 0 0 1-1.682-1.68v-4.21zM5.89 3.362c-.926 0-1.682-.756-1.682-1.681S4.964 0 5.89 0s1.68.756 1.68 1.68v1.682H5.89zm0 .846c.924 0 1.68.756 1.68 1.681S6.814 7.57 5.89 7.57H1.68C.757 7.57 0 6.814 0 5.89c0-.926.756-1.682 1.68-1.682h4.21zm6.749 1.682c0-.926.755-1.682 1.68-1.682.925 0 1.681.756 1.681 1.681s-.756 1.681-1.68 1.681h-1.681V5.89zm-.848 0c0 .924-.755 1.68-1.68 1.68A1.685 1.685 0 0 1 8.43 5.89V1.68C8.43.757 9.186 0 10.11 0c.926 0 1.681.756 1.681 1.68v4.21zm-1.681 6.748c.926 0 1.682.756 1.682 1.681S11.036 16 10.11 16s-1.681-.756-1.681-1.68v-1.682h1.68zm0-.847c-.924 0-1.68-.755-1.68-1.68 0-.925.756-1.681 1.68-1.681h4.21c.924 0 1.68.756 1.68 1.68 0 .926-.756 1.681-1.68 1.681h-4.21z" />
+                </svg>
+                </a>
+            </div>
+            {/* End Social Brands */}
+            </div>
+        </div>
+    </footer>
+  )
+}
+
+Step 8: Use Footer in src/app/(front)/layout.tsx
+---
+<body className={inter.className}>
+    <Navbar />
+            {children}
+     <Footer />
+</body>
+
+Step 9: Edit src/app/(front)/home/Home.tsx Add "Hero Sections"
+---
+
+-------------------------------------------------------
+ขึ้นโปรเจ็กต์ Material UI (MUI)
+-------------------------------------------------------
+Step 1: คำสั่งในการขึ้นโปรเจ็กต์ Next.JS 14
+---
+npx create-next-app@14.1.4
+
+✔ What is your project named? …next-store-app
+✔ Would you like to use TypeScript? … Yes
+✔ Would you like to use ESLint? …  Yes
+✔ Would you like to use Tailwind CSS? … Yes
+✔ Would you like to use `src/` directory? … Yes
+✔ Would you like to use App Router? (recommended) … Yes
+✔ Would you like to customize the default import alias (@/*)? … No
+
+Step 2: ติดตั้ง Library สำหรับการทำ UI ด้วย MUI
+---
+npm i @emotion/cache@11.11.0
+npm i @emotion/react@11.11.3
+npm i @emotion/styled@11.11.0
+npm i @fontsource/roboto@5.0.8
+npm i @mui/icons-material@5.15.11
+npm i @mui/material@5.15.11
+npm i @mui/material-nextjs@5.15.11
+
+-------------------------------------------------------
+✈ DAY 7
+-------------------------------------------------------
+Section 10: NextJS 14 MUI (ต่อ)
+Section 11: React Hook Form with Yup
+Section 12: Auth ใน NextJS 14
+
+Step: 1 ปรับโครงสร้างโปรเจ็กต์ next-store-app
+---
+next-store-app
+|- public
+|- src
+   |-- app
+       |-- (auth)
+           |-- _authForms
+           |-- forgotpass
+           |-- login
+           |-- register
+           |-- twostep
+           |-- types
+           \-- layout.tsx
+       |-- (back)
+           |-- backend
+           \-- layout.tsx
+       |-- (front)
+           |-- about
+           |-- blog
+           |-- contact
+           |-- home
+           |-- page.tsx
+           \-- layout.tsx
+       |-- components
+           |-- forms
+           |   |-- theme-elements
+           |   |   |-- CustomCheckbox.tsx
+           |   |   |-- CustomFormLabel.tsx
+           |   |   |-- CustomSocialButton.tsx
+           |   |   \-- CustomTextField.tsx
+           \-- front
+               |-- animation
+               |-- banner
+               |-- footer
+               |-- frameworks
+               \-- header
+       |-- themes
+           |-- Colors.ts
+           |-- Shadows.ts
+           |-- Theme.ts
+           \-- Typography.ts
+       |-- favicon.ico
+       |-- globals.css
+       |-- layout.tsx
+       |-- not-found.tsx
+   |-- next.config.mjs
+   |-- package.json
+   |-- tsconfig.json
+
+
+Step 2: ติดตั้ง Libray สำหรับทำ Animation
+---
+npm install framer-motion@10.16.4
+
+Step 3: ติดตั้ง Library React implementation of the Intersection Observer API 
+---
+npm i react-intersection-observer@9.5.2
