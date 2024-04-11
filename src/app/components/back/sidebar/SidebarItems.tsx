@@ -16,7 +16,7 @@ export default function SidebarItems({ }: Props) {
     const pathname = usePathname()
     const pathDirect = pathname
     const lgUp = useMediaQuery((theme: any) => theme.breakpoints.up('lg'))
-    const hideMenu: any = lgUp ? false : false
+    const hideMenu: any = lgUp ? false : true
 
     // console.log(Menuitems);
 

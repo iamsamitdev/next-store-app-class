@@ -5,6 +5,6 @@ const nextConfig = {
       transform: "@mui/icons-material/{{member}}",
     },
   },
-};
+}
 
 export default nextConfig;

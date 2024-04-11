@@ -5,7 +5,6 @@ import Tooltip from '@mui/material/Tooltip'
 import Typography from '@mui/material/Typography'
 import useMediaQuery from '@mui/material/useMediaQuery'
 import { IconPower } from '@tabler/icons-react'
-import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 // Import authAction
 import { logout } from "@/app/services/actions/authAction"
@@ -16,7 +15,7 @@ export const Profile = () => {
   const router = useRouter()
 
   const lgUp = useMediaQuery((theme: any) => theme.breakpoints.up('lg'))
-  const hideMenu = lgUp ? false : false
+  const hideMenu = lgUp ? false : true
 
   // Logout Function
   async function handleLogout() {
@@ -33,6 +32,7 @@ export const Profile = () => {
     <Box
       display={'flex'}
       alignItems="center"
+      borderRadius={2}
       gap={2}
       sx={{ m: 3, p: 2, bgcolor: `${'primary.light'}` }}
     >

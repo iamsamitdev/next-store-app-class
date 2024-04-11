@@ -8,7 +8,8 @@ export async function middleware(request:NextRequest) {
                              request.nextUrl.pathname === '/forgotpass' || 
                              request.nextUrl.pathname === '/reset-password' || 
                              request.nextUrl.pathname === '/maintenance' || 
-                             request.nextUrl.pathname === '/coming-soon'
+                             request.nextUrl.pathname === '/coming-soon' ||
+                             request.nextUrl.pathname === '/twostep'
         
         // if there is no token and the page is not public , redirect to login        
         const token = request.cookies.get('token')?.value
@@ -43,6 +44,7 @@ export const config = {
         "/reset-password",
         "/maintenance",
         "/coming-soon",
+        "/twostep",
         "/backend/:path*",
     ]
 }

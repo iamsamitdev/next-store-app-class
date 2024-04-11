@@ -21,7 +21,9 @@ import {
     IconStar,
     IconMoodSmile,
     IconDashboard,
-    IconBrandProducthunt
+    IconBrandProducthunt,
+    IconChartAreaLine,
+    IconLayoutList
   } from "@tabler/icons-react"
 
   const Menuitems: MenuitemsType[] = [
@@ -42,6 +44,18 @@ import {
       title: "Products",
       icon: IconBrandProducthunt,
       href: "/backend/products",
+    },
+    {
+      id: uniqueId(),
+      title: "Categories",
+      icon: IconLayoutList,
+      href: "/backend/category",
+    },
+    {
+      id: uniqueId(),
+      title: "Report",
+      icon: IconChartAreaLine,
+      href: "/backend/report",
     },
   
     {

@@ -1,18 +1,18 @@
-import React from "react";
-import Box from '@mui/material/Box';
-import Container from '@mui/material/Container';
-import Grid from '@mui/material/Grid';
-import Stack from '@mui/material/Stack';
-import { Theme } from '@mui/material/styles';
-import useMediaQuery from '@mui/material/useMediaQuery';
-import { styled } from '@mui/material/styles';
-import BannerContent from "./BannerContent";
-import bannerbgImg1 from "/public/images/front/bannerimg1.svg";
-import bannerbgImg2 from "/public/images/front/bannerimg2.svg";
-import Image from "next/image";
+import React from "react"
+import Box from '@mui/material/Box'
+import Container from '@mui/material/Container'
+import Grid from '@mui/material/Grid'
+import Stack from '@mui/material/Stack'
+import { Theme } from '@mui/material/styles'
+import useMediaQuery from '@mui/material/useMediaQuery'
+import { styled } from '@mui/material/styles'
+import BannerContent from "./BannerContent"
+import bannerbgImg1 from "/public/images/front/bannerimg1.svg"
+import bannerbgImg2 from "/public/images/front/bannerimg2.svg"
+import Image from "next/image"
 
 const Banner = () => {
-  const lgUp = useMediaQuery((theme: Theme) => theme.breakpoints.up("lg"));
+  const lgUp = useMediaQuery((theme: Theme) => theme.breakpoints.up("lg"))
 
   const SliderBox = styled(Box)(() => ({
     "@keyframes slideup": {
@@ -82,7 +82,7 @@ const Banner = () => {
         </Grid>
       </Container>
     </Box>
-  );
-};
+  )
+}
 
-export default Banner;
+export default Banner

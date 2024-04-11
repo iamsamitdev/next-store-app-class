@@ -1,13 +1,13 @@
-import React from "react";
-import Box from '@mui/material/Box';
-import Container from '@mui/material/Container';
-import Stack from '@mui/material/Stack';
-import { styled } from '@mui/material/styles';
-import FrameworksTitle from "./FrameworksTitle";
+import React from "react"
+import Box from '@mui/material/Box'
+import Container from '@mui/material/Container'
+import Stack from '@mui/material/Stack'
+import { styled } from '@mui/material/styles'
+import FrameworksTitle from "./FrameworksTitle"
 
 // images
-import sliderImg from "/public/images/front/background/slider-group.png";
-import Image from "next/image";
+import sliderImg from "/public/images/front/background/slider-group.png"
+import Image from "next/image"
 
 const SliderBox = styled(Box)(() => ({
   "@keyframes slide": {

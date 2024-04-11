@@ -34,7 +34,7 @@ async function login(data: User) {
           maxAge: 60 * 60 * 24, // 1 day
         })
 
-        console.log(data)
+        // console.log(data)
         return { success: true, data }
       } else {
         const error = await response.json()
