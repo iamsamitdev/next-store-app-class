@@ -30,7 +30,7 @@ import {
   FormControl,
   FormHelperText,
 } from "@mui/material"
-import { IconEye, IconEdit, IconTrash, IconPlus } from "@tabler/icons-react"
+import { IconEye, IconEdit, IconTrash, IconPlus, IconX } from "@tabler/icons-react"
 
 // React Hook Form and Yup for Form Validation
 import { Controller, useForm } from "react-hook-form"
@@ -55,7 +55,16 @@ type ProductPost = {
   category_id: string
   unit_price: number
   unit_in_stock: number
-  product_picture: string
+  created_date: string
+  modified_date: string
+}
+
+// Types for product edit
+type ProductEdit = {
+  category_id: number
+  product_name: string
+  unit_price: number
+  unit_in_stock: number
   created_date: string
   modified_date: string
 }
@@ -68,27 +77,42 @@ export default function ProductsPage({}: Props) {
   // State for products
   const [products, setProducts] = useState([])
 
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const response = await getAllProducts()
-        setProducts(response)
-      } catch (error) {
-        console.error("An error occurred while fetching products:", error)
-      }
+  const fetchProducts = async () => {
+    try {
+      const response = await getAllProducts()
+      setProducts(response)
+    } catch (error) {
+      console.error('An error occurred while fetching products:', error)
     }
+  }
+
+  useEffect(() => {
     fetchProducts()
   }, [])
 
-  //   console.log(products)
+  // console.log(products)
+  // -------------------------------------------------------------------------
+
+  // Product Detail ----------------------------------------------------------
+  const [detailOpen, setDetailOpen] = useState(false)
+  const [selectedProduct, setSelectedProduct] = useState<any>(null)
+
+   // Handle opening the product detail dialog
+   const handleOpenDetails = (product: Product) => {
+    setSelectedProduct(product)
+    setDetailOpen(true)
+  };
+
+  // Handle closing the product detail dialog
+  const handleCloseDetails = () => {
+    setDetailOpen(false)
+    setSelectedProduct(null)
+  }
   // -------------------------------------------------------------------------
 
   // Create Product ----------------------------------------------------------
   // State for dialog
   const [open, setOpen] = useState(false)
-
-  // State for selected category
-  const [category, setCategory] = useState("")
 
   // State for image preview
   const [imagePreviewUrl, setImagePreviewUrl] = useState("")
@@ -96,10 +120,11 @@ export default function ProductsPage({}: Props) {
   const fileInputRef:any = useRef(null); // Ref for the file input
 
   // Example categories, replace with your actual categories
-  const categories = [
-    { name: "Electronics", value: "1" },
-    { name: "Furniture", value: "2" },
-    { name: "Clothing", value: "3" },
+   const categories = [
+    { name: "Mobile", value: "1" },
+    { name: "Tablet", value: "2" },
+    { name: "Smart Watch", value: "3" },
+    { name: "Labtop", value: "4"}
   ]
 
   // Handle dialog open
@@ -110,30 +135,43 @@ export default function ProductsPage({}: Props) {
   // Handle dialog close
   const handleClose = () => {
     setOpen(false)
+
     setImagePreviewUrl("")
+    // Clear the file input value
+    fileInputRef.current.value = ''
+
+    // Reset the form
+    reset({
+      product_name: "",
+      unit_price: 0,
+      unit_in_stock: 0,
+      category_id: "",
+      created_date: formatDateToISOWithoutMilliseconds(new Date()),
+      modified_date: formatDateToISOWithoutMilliseconds(new Date()),
+    })
   }
 
   // Handle file change
   const handleFileChange = (event: any) => {
     const file = event.target.files[0];
     if (file) {
-      const reader: any = new FileReader();
+      const reader: any = new FileReader()
   
       reader.onloadend = () => {
         // console.log(reader.result)
-        setImagePreviewUrl(reader.result); // This is now the base64 encoded data URL of the file
+        setImagePreviewUrl(reader.result) // This is now the base64 encoded data URL of the file
       }
   
       reader.readAsDataURL(file); // Read the file as a Data URL
     } else {
-      setImagePreviewUrl(''); // Reset or clear the preview if no file is selected
+      setImagePreviewUrl('')// Reset or clear the preview if no file is selected
     }
   }  
-
+  
   // Remove image preview
   const removeImage = () => {
     // Clear the preview URL
-    setImagePreviewUrl('');
+    setImagePreviewUrl('')
     // Clear the file input value
     fileInputRef.current.value = ''
   }
@@ -144,41 +182,38 @@ export default function ProductsPage({}: Props) {
     unit_price: Yup.string().required("Price is required"),
     unit_in_stock: Yup.string().required("Unit in Stock is required"),
     category_id: Yup.string().required("Category is required"),
-    product_picture: Yup.string().required("Product Picture Name is required"),
   })
 
-  // React Hook Form
-  const {
+   // React Hook Form
+   const {
     control,
     handleSubmit,
     formState: { errors },
+    reset,
   } = useForm<ProductPost>({
-    defaultValues: {
-      product_name: "",
-      unit_price: 0,
-      unit_in_stock: 0,
-      category_id: "",
-      product_picture: "",
-      created_date: formatDateToISOWithoutMilliseconds(new Date()),
-      modified_date: formatDateToISOWithoutMilliseconds(new Date()),
-    },
+      defaultValues: {
+        product_name: "",
+        unit_price: 0,
+        unit_in_stock: 0,
+        category_id: "",
+        created_date: formatDateToISOWithoutMilliseconds(new Date()),
+        modified_date: formatDateToISOWithoutMilliseconds(new Date()),
+      },
     resolver: yupResolver(formValidateSchema),
   })
 
   // Handle Submit Product
   const onSubmitProduct = async (data: ProductPost) => {
-    
     // console.log(data)
 
-    // Form Data
+    // รับค่าเป็น FormData
     const formData: any = new FormData()
 
-    // Append data to form data
+    // กำหนดค่าให้กับ FormData
     formData.append("product_name", data.product_name)
     formData.append("unit_price", data.unit_price.toString())
     formData.append("unit_in_stock", data.unit_in_stock.toString())
     formData.append("category_id", data.category_id)
-    formData.append("product_picture", data.product_picture)
     formData.append("created_date", data.created_date)
     formData.append("modified_date", data.modified_date)
 
@@ -187,22 +222,71 @@ export default function ProductsPage({}: Props) {
       formData.append("image", fileInputRef.current.files[0])
     }
 
+    // วนลูปออกมาดู
     for (let [key, value] of formData.entries()) {
       console.log(`${key}: ${value}`);
     }
-    
+
     // Call your API to submit formData
     // Adjust the createProduct function to expect FormData
     try {
       const response = await createProduct(formData)
       console.log(response)
-      handleClose(); // Close the dialog upon successful submission
+      fetchProducts() // Fetch products again after successful submission
+      handleClose() // Close the dialog upon successful submission
     } catch (error) {
       console.error("Failed to create product:", error);
     }
 
   }
+  
+  // -------------------------------------------------------------------------
 
+  // Edit Product ------------------------------------------------------------
+  // const [editOpen, setEditOpen] = useState(false)
+  // const [editingProduct, setEditingProduct] = useState<ProductEdit | null>(null)
+
+  // const handleOpenEdit = (product: ProductEdit) => {
+  //   console.log(product)
+  //   setEditingProduct(product)
+  //   setEditOpen(true)
+  // }
+  
+  // const handleCloseEdit = () => {
+  //   setEditOpen(false);
+  //   setEditingProduct(null)
+  // }
+
+  // const onSubmitEdit = async (data: ProductEdit) => {
+  //   try {
+  //     const formData: any = new FormData()
+  //     formData.append("product_name", data.product_name)
+  //     formData.append("unit_price", data.unit_price.toString())
+  //     formData.append("unit_in_stock", data.unit_in_stock.toString())
+  //     formData.append("category_id", data.category_id)
+  //     formData.append("created_date", data.created_date)
+  //     formData.append("modified_date", data.modified_date)
+  
+  //     // Append image file to form data
+  //     if (fileInputRef.current.files[0]) {
+  //       formData.append("image", fileInputRef.current.files[0])
+  //     }
+
+  //     // วนลูปออกมาดู
+  //     for (let [key, value] of formData.entries()) {
+  //       console.log(`${key}: ${value}`);
+  //     }
+  
+  //     // const response = await updateProduct(editingProduct?.product_id, formData);
+  //     // console.log("Update response", response);
+  //     // fetchProducts()  // Refresh the list after update
+  //     // handleCloseEdit()  // Close dialog after submission
+  //   } catch (error) {
+  //     console.error("Failed to update product:", error);
+  //   }
+  // }
+  
+  
   // -------------------------------------------------------------------------
 
   return (
@@ -218,7 +302,7 @@ export default function ProductsPage({}: Props) {
             justifyContent="space-between"
             alignItems={"center"}
           >
-            <Typography variant="h5">Products</Typography>
+            <Typography variant="h5">Products ({ products.length })</Typography>
             <Button
               variant="contained"
               color="primary"
@@ -229,6 +313,7 @@ export default function ProductsPage({}: Props) {
           </Stack>
         </CardContent>
         <Box sx={{ overflow: "auto", width: { sm: "auto" } }}>
+
           <Table
             aria-label="products"
             sx={{
@@ -291,7 +376,7 @@ export default function ProductsPage({}: Props) {
                   </TableCell>
                   <TableCell>
                     <img
-                      src={product.product_picture}
+                      src={`${process.env.NEXT_PUBLIC_BASE_IMAGE_URL_API}/${product.product_picture}`}
                       alt={product.product_name}
                       style={{ width: "50px" }}
                     />
@@ -303,11 +388,11 @@ export default function ProductsPage({}: Props) {
                   <TableCell>{formatDate(product.created_date)}</TableCell>
                   <TableCell>
                     {/* Button View, Edit and Delete with Icon */}
-
                     <Button
                       variant="contained"
                       color="info"
                       sx={{ mr: 1, minWidth: "30px" }}
+                      onClick={() => handleOpenDetails(product)}
                     >
                       <IconEye size={16} />
                     </Button>
@@ -315,6 +400,7 @@ export default function ProductsPage({}: Props) {
                       variant="contained"
                       color="warning"
                       sx={{ mr: 1, minWidth: "30px" }}
+                      // onClick={() => handleOpenEdit(product)}
                     >
                       <IconEdit size={16} />
                     </Button>
@@ -330,6 +416,7 @@ export default function ProductsPage({}: Props) {
               ))}
             </TableBody>
           </Table>
+
         </Box>
       </Card>
 
@@ -340,132 +427,140 @@ export default function ProductsPage({}: Props) {
           noValidate
           autoComplete="off"
         >
-        <DialogTitle sx={{mt:'20px'}}>Add New Product</DialogTitle>
-        <DialogContent>
+          <DialogTitle sx={{mt:'20px'}}>Add New Product</DialogTitle>
+          <DialogContent sx={{width: '400px'}}>
 
-          <Controller
-            name="product_name"
-            control={control}
-            render={({ field }) => (
-              <TextField
-                {...field}
-                autoFocus
-                margin="dense"
-                id="product_name"
-                label="Product Name"
-                type="text"
-                fullWidth
-                variant="outlined"
-                error={errors.product_name ? true : false}
-                helperText={errors.product_name?.message}
-              />
-            )}
-          />
-
-          <Controller
-            name="unit_price"
-            control={control}
-            render={({ field }) => (
-              <TextField
-                {...field}
-                margin="dense"
-                id="unit_price"
-                label="Unit Price"
-                type="number"
-                fullWidth
-                variant="outlined"
-                error={errors.unit_price ? true : false}
-                helperText={errors.unit_price?.message}
-              />
-            )}
-          />
-
-          <Controller
-            name="unit_in_stock"
-            control={control}
-            render={({ field }) => (
-              <TextField
-                {...field}
-                margin="dense"
-                id="unit_in_stock"
-                label="Unit in Stock"
-                type="number"
-                fullWidth
-                variant="outlined"
-                error={errors.unit_in_stock ? true : false}
-                helperText={errors.unit_in_stock?.message}
-              />
-            )}
-          />
-
-          <FormControl fullWidth variant="outlined" margin="dense">
-            <InputLabel id="category_name-label">Category</InputLabel>
             <Controller
-              name="category_id"
+              name="product_name"
               control={control}
-              render={({ field: { onChange, value }, fieldState: { error } }) => (
-                <Select
-                  labelId="category_name-label"
-                  id="category_id"
-                  label="Category"
-                  value={value}
-                  onChange={onChange} // Use field.onChange for change handler
-                  error={!!error} // Use fieldState.error to determine if there's an error
-                >
-                  {categories.map((category) => (
-                    <MenuItem key={category.value} value={category.value}>
-                      {category.name}
-                    </MenuItem>
-                  ))}
-                </Select>
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  autoFocus
+                  margin="dense"
+                  id="product_name"
+                  label="Product Name"
+                  type="text"
+                  fullWidth
+                  variant="outlined"
+                  error={errors.product_name ? true : false}
+                  helperText={errors.product_name?.message}
+                />
               )}
             />
-            <FormHelperText error={errors.category_id ? true : false}>
-              {errors.category_id?.message}
-            </FormHelperText>
-          </FormControl>
 
-          <Controller 
-            name="product_picture"
-            control={control}
-            render={({ field }) => (
-              <TextField
-                {...field}
-                margin="dense"
-                id="product_picture_name"
-                label="Product Picture Name"
-                type="text"
-                fullWidth
-                variant="outlined"
-                error={errors.product_picture ? true : false}
-                helperText={errors.product_picture?.message}
+            <Controller
+              name="unit_price"
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  margin="dense"
+                  id="unit_price"
+                  label="Unit Price"
+                  type="number"
+                  fullWidth
+                  variant="outlined"
+                  error={errors.unit_price ? true : false}
+                  helperText={errors.unit_price?.message}
+                />
+              )}
+            />
+
+            <Controller
+              name="unit_in_stock"
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  margin="dense"
+                  id="unit_in_stock"
+                  label="Unit in Stock"
+                  type="number"
+                  fullWidth
+                  variant="outlined"
+                  error={errors.unit_in_stock ? true : false}
+                  helperText={errors.unit_in_stock?.message}
+                />
+              )}
+            />
+
+            <FormControl fullWidth variant="outlined" margin="dense">
+              <InputLabel id="category_name-label">Category</InputLabel>
+              <Controller
+                name="category_id"
+                control={control}
+                render={({ field: { onChange, value }, fieldState: { error } }) => (
+                  <Select
+                    labelId="category_name-label"
+                    id="category_id"
+                    label="Category"
+                    value={value}
+                    onChange={onChange} // Use field.onChange for change handler
+                    error={!!error} // Use fieldState.error to determine if there's an error
+                  >
+                    {categories.map((category) => (
+                      <MenuItem key={category.value} value={category.value}>
+                        {category.name}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                )}
               />
+              <FormHelperText error={errors.category_id ? true : false}>
+                {errors.category_id?.message}
+              </FormHelperText>
+            </FormControl>
+            
+            {/* File Input */}
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileChange}
+              style={{ display: 'block', margin: '10px 0' }}
+            />
+
+            {imagePreviewUrl && (
+              <Box sx={{ mt: 2, mb: 2, textAlign: 'center' }}>
+                <Box sx={{ textAlign: 'right'}}>
+                  <Button onClick={removeImage} variant="outlined" style={{ display: 'inline-block'}}>
+                    <IconX size={16} />
+                  </Button>
+                </Box>
+                <img src={imagePreviewUrl} alt="Preview" style={{ maxWidth: '100%', maxHeight: '300px', borderRadius: '10px' }} />
+              </Box>
             )}
-          />
 
-          <input
-            type="file"
-            ref={fileInputRef}
-            onChange={handleFileChange}
-            style={{ display: 'block', margin: '10px 0' }}
-          />
-
-          {imagePreviewUrl && (
-            <Box sx={{ mt: 2, mb: 2, textAlign: 'center' }}>
-              <img src={imagePreviewUrl} alt="Preview" style={{ maxWidth: '100%', maxHeight: '300px', borderRadius: '10px' }} />
-                <Button onClick={removeImage} variant="contained" color="secondary" style={{ display: 'block', margin: '10px auto' }}>
-                Remove Image
-              </Button>
-            </Box>
-          )}
-
-        </DialogContent>
-        <DialogActions sx={{mb:'20px', mr: '16px'}}>
-          <Button onClick={handleClose}>Cancel</Button>
-          <Button type="submit" variant="contained">Submit</Button>
-        </DialogActions>
+          </DialogContent>
+          <DialogActions sx={{mb:'20px', mr: '16px'}}>
+            <Button onClick={handleClose}>Cancel</Button>
+            <Button type="submit" variant="contained">Submit</Button>
+          </DialogActions>
         </form>
       </Dialog>
+
+      {/* Product Detail Dialog */}
+      {
+        selectedProduct &&
+          <Dialog open={detailOpen} onClose={handleCloseDetails}>
+              <DialogContent sx={{width: '400px'}}>
+                <img src={`${process.env.NEXT_PUBLIC_BASE_IMAGE_URL_API}/${selectedProduct?.product_picture}`} alt={selectedProduct?.product_name} style={{ width: '100%', marginBottom:'20px' }} />
+                <Typography variant="h5">{selectedProduct?.product_name}</Typography>
+                <Typography color="textSecondary">{selectedProduct?.category_name}</Typography>
+                <Typography color="textSecondary">$ {numberWithCommas(selectedProduct?.unit_price)}</Typography>
+                <Typography color="textSecondary">Units: {selectedProduct?.unit_in_stock}</Typography>
+                <Typography color="textSecondary">Created: {formatDate(selectedProduct?.created_date)}</Typography>
+                <Typography color="textSecondary">Updated: {formatDate(selectedProduct?.modified_date)}</Typography>
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={handleCloseDetails}>Close</Button>
+              </DialogActions>
+          </Dialog>
+      }
+
+      {/* Edit Product Dialog */}
+
+      
     </>
   )
 }
