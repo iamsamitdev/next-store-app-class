@@ -21,29 +21,35 @@ function getToken() {
 }
 
 // CRUD Functions for Product
-// Get All Products
-async function getAllProducts() {
+// Get All Products with page and limit and filter with selectedCategory and searchQuery
+async function getAllProducts(page: number, limit: number, selectedCategory: string, searchQuery: string) {
   getToken()
+  console.log('fetch...')
   try {
-
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL_API}/Product`, {
+    let url = `${process.env.NEXT_PUBLIC_BASE_URL_API}/Product?page=${page}&limit=${limit}`
+    if (selectedCategory) {
+      url += `&selectedCategory=${selectedCategory}`
+    }
+    if (searchQuery) {
+      url += `&searchQuery=${searchQuery}`
+    }
+    const response = await fetch(url, {
       method: 'GET',
       headers: {
-        'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`,
       },
     })
     if (response.ok) {
-        return response.json()
+      const data = await response.json()
+      // console.log(data)
+      return data
     } else {
-       throw new Error('Failed to fetch products');
+      throw new Error('Failed to get products')
     }
   } catch (error) {
-    console.error('An error occurred while fetching products:', error)
-    throw new Error('Failed to fetch products');
+    console.error('An error occurred while getting products:', error)
   }
 }
-
 
 // Create Product
 async function createProduct(payload: any) {
@@ -61,7 +67,7 @@ async function createProduct(payload: any) {
     })
     if (response.ok) {
       const data = await response.json()
-      console.log(data)
+      // console.log(data)
       return { success: true }
     } else {
       throw new Error('Failed to create product')
@@ -88,7 +94,7 @@ async function updateProduct(id: string, payload: any) {
     })
     if (response.ok) {
       const data = await response.json()
-      console.log(data)
+      // console.log(data)
       return { success: true }
     } else {
       throw new Error('Failed to update product')
@@ -113,7 +119,7 @@ async function deleteProduct(id: number) {
     })
     if (response.ok) {
       const data = await response.json()
-      console.log(data)
+      // console.log(data)
       return { success: true }
     } else {
        throw new Error('Failed to delete product')
@@ -124,6 +130,5 @@ async function deleteProduct(id: number) {
     console.error('An error occurred while deleting product:', error)
   }
 }
-
 
 export { getAllProducts, createProduct, updateProduct, deleteProduct }
