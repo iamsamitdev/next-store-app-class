@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from "react"
 
 // Custom components
-import { getAllProducts, createProduct } from "@/app/services/actions/productAction"
+import { getAllProducts, createProduct, updateProduct, deleteProduct } from "@/app/services/actions/productAction"
 import { numberWithCommas, formatDate, formatDateToISOWithoutMilliseconds } from "@/app/utils/CommondUtil"
 
 // MUI Table and related components
@@ -40,6 +40,7 @@ import { yupResolver } from "@hookform/resolvers/yup"
 // Types for product get
 type Product = {
   product_id: number
+  category_id: number
   category_name: string
   product_name: string
   unit_price: number
@@ -61,11 +62,10 @@ type ProductPost = {
 
 // Types for product edit
 type ProductEdit = {
-  category_id: number
   product_name: string
   unit_price: number
   unit_in_stock: number
-  created_date: string
+  category_id: string
   modified_date: string
 }
 
@@ -114,9 +114,10 @@ export default function ProductsPage({}: Props) {
   // State for dialog
   const [open, setOpen] = useState(false)
 
-  // State for image preview
+  // State for image preview for creating product
   const [imagePreviewUrl, setImagePreviewUrl] = useState("")
 
+  // Ref for the file input for creating product
   const fileInputRef:any = useRef(null); // Ref for the file input
 
   // Example categories, replace with your actual categories
@@ -141,7 +142,7 @@ export default function ProductsPage({}: Props) {
     fileInputRef.current.value = ''
 
     // Reset the form
-    reset({
+    resetCreate({
       product_name: "",
       unit_price: 0,
       unit_in_stock: 0,
@@ -151,7 +152,7 @@ export default function ProductsPage({}: Props) {
     })
   }
 
-  // Handle file change
+  // Handle file change for creating product
   const handleFileChange = (event: any) => {
     const file = event.target.files[0];
     if (file) {
@@ -168,7 +169,7 @@ export default function ProductsPage({}: Props) {
     }
   }  
   
-  // Remove image preview
+  // Remove image preview for creating product
   const removeImage = () => {
     // Clear the preview URL
     setImagePreviewUrl('')
@@ -176,20 +177,20 @@ export default function ProductsPage({}: Props) {
     fileInputRef.current.value = ''
   }
 
-  // Form Validation Schema
-  const formValidateSchema: any = Yup.object().shape({
+  // Form Validation Schema for creating product
+  const createFormValidateSchema: any = Yup.object().shape({
     product_name: Yup.string().required("Product Name is required").trim(),
     unit_price: Yup.string().required("Price is required"),
     unit_in_stock: Yup.string().required("Unit in Stock is required"),
     category_id: Yup.string().required("Category is required"),
   })
 
-   // React Hook Form
+   // React Hook Form for creating product
    const {
-    control,
-    handleSubmit,
-    formState: { errors },
-    reset,
+    control: controlCreate,
+    handleSubmit: handleSubmitCreate,
+    formState: { errors: errorsCreate },
+    reset: resetCreate,
   } = useForm<ProductPost>({
       defaultValues: {
         product_name: "",
@@ -199,7 +200,7 @@ export default function ProductsPage({}: Props) {
         created_date: formatDateToISOWithoutMilliseconds(new Date()),
         modified_date: formatDateToISOWithoutMilliseconds(new Date()),
       },
-    resolver: yupResolver(formValidateSchema),
+    resolver: yupResolver(createFormValidateSchema),
   })
 
   // Handle Submit Product
@@ -243,50 +244,146 @@ export default function ProductsPage({}: Props) {
   // -------------------------------------------------------------------------
 
   // Edit Product ------------------------------------------------------------
-  // const [editOpen, setEditOpen] = useState(false)
-  // const [editingProduct, setEditingProduct] = useState<ProductEdit | null>(null)
+  const [editOpen, setEditOpen] = useState(false)
+  const [editingProduct, setEditingProduct] = useState<Product | any>(null)
 
-  // const handleOpenEdit = (product: ProductEdit) => {
-  //   console.log(product)
-  //   setEditingProduct(product)
-  //   setEditOpen(true)
-  // }
-  
-  // const handleCloseEdit = () => {
-  //   setEditOpen(false);
-  //   setEditingProduct(null)
-  // }
+   // State for image preview for edit product
+  const [editImagePreviewUrl, setEditImagePreviewUrl] = useState("")
 
-  // const onSubmitEdit = async (data: ProductEdit) => {
-  //   try {
-  //     const formData: any = new FormData()
-  //     formData.append("product_name", data.product_name)
-  //     formData.append("unit_price", data.unit_price.toString())
-  //     formData.append("unit_in_stock", data.unit_in_stock.toString())
-  //     formData.append("category_id", data.category_id)
-  //     formData.append("created_date", data.created_date)
-  //     formData.append("modified_date", data.modified_date)
-  
-  //     // Append image file to form data
-  //     if (fileInputRef.current.files[0]) {
-  //       formData.append("image", fileInputRef.current.files[0])
-  //     }
+  // Ref for the file input for edit product
+  const editFileInputRef:any = useRef(null); // Ref for the file input
 
-  //     // วนลูปออกมาดู
-  //     for (let [key, value] of formData.entries()) {
-  //       console.log(`${key}: ${value}`);
-  //     }
+
+  // Handle file change for edit product
+  const handleEditFileChange = (event: any) => {
+    const file = event.target.files[0];
+    if (file) {
+      const reader: any = new FileReader()
   
-  //     // const response = await updateProduct(editingProduct?.product_id, formData);
-  //     // console.log("Update response", response);
-  //     // fetchProducts()  // Refresh the list after update
-  //     // handleCloseEdit()  // Close dialog after submission
-  //   } catch (error) {
-  //     console.error("Failed to update product:", error);
-  //   }
-  // }
+      reader.onloadend = () => {
+        // console.log(reader.result)
+        setEditImagePreviewUrl(reader.result) // This is now the base64 encoded data URL of the file
+      }
   
+      reader.readAsDataURL(file); // Read the file as a Data URL
+    } else {
+      setEditImagePreviewUrl('')// Reset or clear the preview if no file is selected
+    }
+  }
+
+  // Remove image preview for edit product
+  const removeEditImage = () => {
+    // Clear the preview URL
+    setEditImagePreviewUrl('')
+    // Clear the file input value
+    editFileInputRef.current.value = ''
+  }
+
+  const handleCloseEdit = () => {
+    setEditOpen(false)
+    resetEdit()
+
+    setEditImagePreviewUrl("")
+    // Clear the file input value
+    editFileInputRef.current.value = ''
+  }
+
+  // Reset form with current product data when opening the edit dialog
+  const handleOpenEdit = (product: Product) => {
+    resetEdit({
+      product_name: product.product_name,
+      unit_price: product.unit_price,
+      unit_in_stock: product.unit_in_stock,
+      category_id: product.category_id.toString(),
+      modified_date: formatDateToISOWithoutMilliseconds(new Date()),
+    })
+    setEditingProduct(product)
+    setEditOpen(true)
+  }
+
+  // Form Validation Schema for editing product
+  const editFormValidateSchema = Yup.object().shape({
+    product_name: Yup.string().required("Product Name is required").trim(),
+    unit_price: Yup.number().required("Price is required"),
+    unit_in_stock: Yup.number().required("Unit in Stock is required"),
+    category_id: Yup.string().required("Category is required"),
+  });
+
+  // React Hook Form for editing product
+  const {
+    control: controlEdit,
+    handleSubmit: handleSubmitEdit,
+    formState: { errors: errorsEdit },
+    reset: resetEdit,
+  } = useForm<ProductEdit>({
+    resolver: yupResolver(editFormValidateSchema) as any,
+  })
+
+  // Handle Submit Edit Product
+  const onSubmitEdit = async (data: ProductEdit) => {
+    console.log(data)
+    // console.log(editingProduct)
+
+    // รับค่าเป็น FormData
+    const formData: any = new FormData()
+
+    // กำหนดค่าให้กับ FormData
+    formData.append("product_name", data.product_name)
+    formData.append("unit_price", data.unit_price.toString())
+    formData.append("unit_in_stock", data.unit_in_stock.toString())
+    formData.append("category_id", data.category_id)
+    formData.append("modified_date", data.modified_date)
+
+    // Append image file to form data
+    if (editFileInputRef.current.files[0]) {
+      formData.append("image", editFileInputRef.current.files[0])
+    }
+
+    // วนลูปออกมาดู
+    for (let [key, value] of formData.entries()) {
+      console.log(`${key}: ${value}`);
+    }
+
+    // Call your API to submit the edited product
+    try {
+      const response = await updateProduct(editingProduct.product_id, formData)
+      console.log(response)
+      fetchProducts() // Fetch products again after successful submission
+      handleCloseEdit() // Close the dialog upon successful submission
+    } catch (error) {
+      console.error("Failed to update product:", error)
+    }
+    
+  }
+  // -------------------------------------------------------------------------
+
+  // Delete Product ----------------------------------------------------------
+  const [deleteOpen, setDeleteOpen] = useState(false)
+  const [deletingProductId, setDeletingProductId] = useState<number | null>(null)
+
+  const handleOpenDelete = (productId: number) => {
+    setDeletingProductId(productId)
+    setDeleteOpen(true)
+  }
   
+  const handleCloseDelete = () => {
+    setDeleteOpen(false)
+    setDeletingProductId(null)
+  }
+
+  const handleDeleteProduct = async () => {
+    if (deletingProductId) {
+      try {
+        const response = await deleteProduct(deletingProductId)
+        console.log(response)
+        fetchProducts()  // Fetch products again after successful deletion
+        handleCloseDelete()  // Close the confirmation dialog
+      } catch (error) {
+        console.error("Failed to delete product:", error)
+      }
+    }
+    handleCloseDelete()  // Close the confirmation dialog
+  }  
   // -------------------------------------------------------------------------
 
   return (
@@ -400,7 +497,7 @@ export default function ProductsPage({}: Props) {
                       variant="contained"
                       color="warning"
                       sx={{ mr: 1, minWidth: "30px" }}
-                      // onClick={() => handleOpenEdit(product)}
+                      onClick={() => handleOpenEdit(product)}
                     >
                       <IconEdit size={16} />
                     </Button>
@@ -408,6 +505,7 @@ export default function ProductsPage({}: Props) {
                       variant="contained"
                       color="error"
                       sx={{ mr: 1, minWidth: "30px" }}
+                      onClick={() => handleOpenDelete(product.product_id)}
                     >
                       <IconTrash size={16} />
                     </Button>
@@ -423,7 +521,7 @@ export default function ProductsPage({}: Props) {
       {/* Add Product Dialog */}
       <Dialog open={open} onClose={handleClose}>
         <form 
-          onSubmit={handleSubmit(onSubmitProduct)}
+          onSubmit={handleSubmitCreate(onSubmitProduct)}
           noValidate
           autoComplete="off"
         >
@@ -432,7 +530,7 @@ export default function ProductsPage({}: Props) {
 
             <Controller
               name="product_name"
-              control={control}
+              control={controlCreate}
               render={({ field }) => (
                 <TextField
                   {...field}
@@ -443,15 +541,15 @@ export default function ProductsPage({}: Props) {
                   type="text"
                   fullWidth
                   variant="outlined"
-                  error={errors.product_name ? true : false}
-                  helperText={errors.product_name?.message}
+                  error={errorsCreate.product_name ? true : false}
+                  helperText={errorsCreate.product_name?.message}
                 />
               )}
             />
 
             <Controller
               name="unit_price"
-              control={control}
+              control={controlCreate}
               render={({ field }) => (
                 <TextField
                   {...field}
@@ -461,15 +559,15 @@ export default function ProductsPage({}: Props) {
                   type="number"
                   fullWidth
                   variant="outlined"
-                  error={errors.unit_price ? true : false}
-                  helperText={errors.unit_price?.message}
+                  error={errorsCreate.unit_price ? true : false}
+                  helperText={errorsCreate.unit_price?.message}
                 />
               )}
             />
 
             <Controller
               name="unit_in_stock"
-              control={control}
+              control={controlCreate}
               render={({ field }) => (
                 <TextField
                   {...field}
@@ -479,8 +577,8 @@ export default function ProductsPage({}: Props) {
                   type="number"
                   fullWidth
                   variant="outlined"
-                  error={errors.unit_in_stock ? true : false}
-                  helperText={errors.unit_in_stock?.message}
+                  error={errorsCreate.unit_in_stock ? true : false}
+                  helperText={errorsCreate.unit_in_stock?.message}
                 />
               )}
             />
@@ -489,7 +587,7 @@ export default function ProductsPage({}: Props) {
               <InputLabel id="category_name-label">Category</InputLabel>
               <Controller
                 name="category_id"
-                control={control}
+                control={controlCreate}
                 render={({ field: { onChange, value }, fieldState: { error } }) => (
                   <Select
                     labelId="category_name-label"
@@ -507,12 +605,12 @@ export default function ProductsPage({}: Props) {
                   </Select>
                 )}
               />
-              <FormHelperText error={errors.category_id ? true : false}>
-                {errors.category_id?.message}
+              <FormHelperText error={errorsCreate.category_id ? true : false}>
+                {errorsCreate.category_id?.message}
               </FormHelperText>
             </FormControl>
             
-            {/* File Input */}
+            {/* File Input Create Product*/}
             <input
               type="file"
               ref={fileInputRef}
@@ -559,8 +657,142 @@ export default function ProductsPage({}: Props) {
       }
 
       {/* Edit Product Dialog */}
+      <Dialog open={editOpen} onClose={handleCloseEdit}>
+        <DialogTitle sx={{mt:'20px'}}>Edit Product</DialogTitle>
+        <form 
+          onSubmit={handleSubmitEdit(onSubmitEdit)}
+          noValidate
+          autoComplete="off"
+        >
+          <DialogContent sx={{width: '400px'}}>
 
-      
+            {/* Preview Old Image */}
+            <img src={`${process.env.NEXT_PUBLIC_BASE_IMAGE_URL_API}/${editingProduct?.product_picture}`} alt={editingProduct?.product_name} style={{ width: '100%', marginBottom:'20px' }} />
+
+            <Controller
+              name="product_name"
+              control={controlEdit}
+              defaultValue={editingProduct?.product_name || ''}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  autoFocus
+                  margin="dense"
+                  label="Product Name"
+                  type="text"
+                  fullWidth
+                  variant="outlined"
+                  error={errorsEdit.product_name ? true : false}
+                  helperText={errorsEdit.product_name?.message}
+                />
+              )}
+            />
+
+            <Controller
+              name="unit_price"
+              control={controlEdit}
+              defaultValue={editingProduct?.unit_price || 0}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  margin="dense"
+                  label="Unit Price"
+                  type="number"
+                  fullWidth
+                  variant="outlined"
+                  error={errorsEdit.unit_price ? true : false}
+                  helperText={errorsEdit.unit_price?.message}
+                />
+              )}
+            />
+
+            <Controller
+              name="unit_in_stock"
+              control={controlEdit}
+              defaultValue={editingProduct?.unit_in_stock || 0}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  margin="dense"
+                  label="Unit in Stock"
+                  type="number"
+                  fullWidth
+                  variant="outlined"
+                  error={errorsEdit.unit_in_stock ? true : false}
+                  helperText={errorsEdit.unit_in_stock?.message}
+                />
+              )}
+            />
+
+            <FormControl fullWidth variant="outlined" margin="dense">
+              <InputLabel id="category_name-label">Category</InputLabel>
+              <Controller
+                name="category_id"
+                control={controlEdit}
+                defaultValue={editingProduct?.category_id.toString() || ''}
+                render={({ field: { onChange, value }, fieldState: { error } }) => (
+                  <Select
+                    labelId="category_name-label"
+                    id="category_id"
+                    label="Category"
+                    value={value}
+                    onChange={onChange} // Use field.onChange for change handler
+                    error={!!error} // Use fieldState.error to determine if there's an error
+                  >
+                    {categories.map((category) => (
+                      <MenuItem key={category.value} value={category.value}>
+                        {category.name}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                )}
+              />
+              <FormHelperText error={errorsEdit.category_id ? true : false}>
+                {errorsEdit.category_id?.message}
+              </FormHelperText>
+            </FormControl>
+
+            {/* File Input Edit Product*/}
+            <input
+              type="file"
+              ref={editFileInputRef}
+              onChange={handleEditFileChange}
+              style={{ display: 'block', margin: '10px 0' }}
+            />
+
+            {editImagePreviewUrl && (
+              <Box sx={{ mt: 2, mb: 2, textAlign: 'center' }}>
+                <Box sx={{ textAlign: 'right'}}>
+                  <Button onClick={removeEditImage} variant="outlined" style={{ display: 'inline-block'}}>
+                    <IconX size={16} />
+                  </Button>
+                </Box>
+                <img src={editImagePreviewUrl} alt="Preview" style={{ maxWidth: '100%', maxHeight: '300px', borderRadius: '10px' }} />
+              </Box>
+            )
+            }
+
+
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCloseEdit}>Cancel</Button>
+            <Button type="submit" variant="contained">Update</Button>
+          </DialogActions>
+        </form>
+      </Dialog>
+
+      {/* Delete Product Dialog */}
+      <Dialog open={deleteOpen} onClose={handleCloseDelete}>
+        <DialogTitle>Delete Product</DialogTitle>
+        <DialogContent>
+          <Typography>Are you sure you want to delete this product?</Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDelete}>Cancel</Button>
+          <Button onClick={handleDeleteProduct} color="error">Delete</Button>
+        </DialogActions>
+      </Dialog>
+
     </>
   )
 }
