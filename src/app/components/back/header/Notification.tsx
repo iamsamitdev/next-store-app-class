@@ -13,7 +13,6 @@ import Scrollbar from '@/app/components/back/custom-scroll/Scrollbar'
 
 import { IconBellRinging } from '@tabler/icons-react'
 import { Stack } from '@mui/system'
-import Link from 'next/link'
 
 const Notifications = () => {
   const [anchorEl2, setAnchorEl2] = useState(null)
@@ -106,7 +105,7 @@ const Notifications = () => {
           ))}
         </Scrollbar>
         <Box p={3} pb={1}>
-          <Button href="/apps/email" variant="outlined" component={Link} color="primary" fullWidth>
+          <Button href="#" variant="outlined" color="primary" fullWidth>
             See all Notifications
           </Button>
         </Box>

@@ -9,7 +9,6 @@ import {
   IconMessages,
 } from '@tabler/icons-react'
 import Box from '@mui/material/Box'
-import Collapse from '@mui/material/Collapse'
 import Drawer from '@mui/material/Drawer'
 import IconButton from '@mui/material/IconButton'
 import List from '@mui/material/List'
@@ -17,7 +16,6 @@ import ListItemButton from '@mui/material/ListItemButton'
 import ListItemIcon from '@mui/material/ListItemIcon'
 import ListItemText from '@mui/material/ListItemText'
 import Typography from '@mui/material/Typography'
-import Link from 'next/link'
 
 const MobileRightSidebar = () => {
   const [showDrawer, setShowDrawer] = useState(false)
@@ -39,7 +37,7 @@ const MobileRightSidebar = () => {
           component="nav"
           aria-labelledby="nested-list-subheader"
         >
-          <ListItemButton component={Link} href="/apps/chats">
+          <ListItemButton href="#">
             <ListItemIcon sx={{ minWidth: 35 }}>
               <IconMessages size="21" stroke="1.5" />
             </ListItemIcon>
@@ -49,7 +47,7 @@ const MobileRightSidebar = () => {
               </Typography>
             </ListItemText>
           </ListItemButton>
-          <ListItemButton component={Link} href="/apps/calendar">
+          <ListItemButton href="#">
             <ListItemIcon sx={{ minWidth: 35 }}>
               <IconCalendarEvent size="21" stroke="1.5" />
             </ListItemIcon>
@@ -59,7 +57,7 @@ const MobileRightSidebar = () => {
               </Typography>
             </ListItemText>
           </ListItemButton>
-          <ListItemButton component={Link} href="/apps/email">
+          <ListItemButton href="#">
             <ListItemIcon sx={{ minWidth: 35 }}>
               <IconMail size="21" stroke="1.5" />
             </ListItemIcon>
