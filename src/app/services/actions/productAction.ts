@@ -24,7 +24,7 @@ function getToken() {
 // Get All Products with page and limit and filter with selectedCategory and searchQuery
 async function getAllProducts(page: number, limit: number, selectedCategory: string, searchQuery: string) {
   getToken()
-  console.log('fetch...')
+  // console.log('fetch...')
   try {
     let url = `${process.env.NEXT_PUBLIC_BASE_URL_API}/Product?page=${page}&limit=${limit}`
     if (selectedCategory) {
