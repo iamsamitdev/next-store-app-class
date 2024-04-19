@@ -10,11 +10,6 @@ import {
   Card,
   CardContent,
   Stack,
-  TextField,
-  Select,
-  MenuItem,
-  InputLabel,
-  FormControl,
   LinearProgress,
   Alert,
 } from "@mui/material"
@@ -220,7 +215,7 @@ export default function ProductsPage({}: Props) {
               totalCount={totalCount}
               page={page}
               rowsPerPage={rowsPerPage}
-              handleChangePage={(event, newPage) => setPage(newPage)}
+              handleChangePage={(_event, newPage) => setPage(newPage)}
               handleChangeRowsPerPage={(event) =>
                 setRowsPerPage(parseInt(event.target.value, 10))
               }
