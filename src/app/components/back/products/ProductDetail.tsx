@@ -5,7 +5,9 @@ import {
   DialogActions,
   Button,
   Typography,
+  Box,
 } from "@mui/material"
+import Image from "next/image"
 import { numberWithCommas, formatDate } from "@/app/utils/CommondUtil"
 import { Product } from "@/app/(back)/backend/types/ProductTypes"
 
@@ -25,11 +27,30 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
   return (
     <Dialog open={open} onClose={onClose}>
       <DialogContent sx={{ width: "400px" }}>
-        <img
+        {/* <img
           src={`${process.env.NEXT_PUBLIC_BASE_IMAGE_URL_API}/${product.product_picture}`}
           alt={product.product_name}
           style={{ width: "100%", marginBottom: "20px" }}
-        />
+        /> */}
+
+        <Box
+          sx={{
+            position: "relative",
+            width: '100%',
+            height: '350px',
+            borderRadius: '10px',
+            marginBottom: '20px',
+            overflow: 'hidden'
+          }}
+        >
+          <Image
+            src={`${process.env.NEXT_PUBLIC_BASE_IMAGE_URL_API}/${product.product_picture}`}
+            alt={product.product_name}
+            layout="fill"
+            objectFit="cover"
+          />
+        </Box>
+              
         <Typography variant="h5">{product.product_name}</Typography>
         <Typography color="textSecondary">{product.category_name}</Typography>
         <Typography color="textSecondary">

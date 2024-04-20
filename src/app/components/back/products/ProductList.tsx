@@ -8,9 +8,11 @@ import {
   Typography,
   Button,
   TablePagination,
+  Box,
 } from "@mui/material"
+import Image from "next/image"
 import { IconEye, IconEdit, IconTrash } from "@tabler/icons-react"
-import { Product, ProductEdit } from "@/app/(back)/backend/types/ProductTypes"
+import { Product } from "@/app/(back)/backend/types/ProductTypes"
 import { numberWithCommas, formatDate } from "@/app/utils/CommondUtil"
 
 interface ProductListProps {
@@ -91,11 +93,25 @@ const ProductList: React.FC<ProductListProps> = ({
             <TableRow key={product.product_id}>
               <TableCell>{product.product_id}</TableCell>
               <TableCell>
-                <img
-                  src={`${process.env.NEXT_PUBLIC_BASE_IMAGE_URL_API}/${product.product_picture}`}
-                  alt={product.product_name}
-                  style={{ width: "50px" }}
-                />
+
+                {/* Image */}
+                <Box
+                  sx={{
+                    position: "relative",
+                    width: '50px',
+                    height: '50px',
+                    borderRadius: '5px',
+                    overflow: 'hidden'
+                  }}
+                >
+                  <Image
+                    src={`${process.env.NEXT_PUBLIC_BASE_IMAGE_URL_API}/${product.product_picture}`}
+                    alt={product.product_name}
+                    layout="fill"
+                    objectFit="cover"
+                  />
+                </Box>
+
               </TableCell>
               <TableCell>{product.product_name}</TableCell>
               <TableCell>{product.category_name}</TableCell>

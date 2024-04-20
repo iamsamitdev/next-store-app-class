@@ -13,6 +13,7 @@ import {
   FormHelperText,
   Box,
 } from "@mui/material"
+import Image from "next/image"
 import { Controller, useForm } from "react-hook-form"
 import { yupResolver } from "@hookform/resolvers/yup"
 import * as Yup from "yup"
@@ -244,6 +245,7 @@ const AddProductDialog: React.FC<AddProductDialogProps> = ({
 
           {imagePreviewUrl && (
             <Box sx={{ mt: 2, mb: 2, textAlign: "center" }}>
+              
               <Box sx={{ textAlign: "right" }}>
                 <Button
                   onClick={removeImage}
@@ -253,15 +255,24 @@ const AddProductDialog: React.FC<AddProductDialogProps> = ({
                   <IconX size={16} />
                 </Button>
               </Box>
-              <img
-                src={imagePreviewUrl}
-                alt="Preview"
-                style={{
-                  maxWidth: "100%",
-                  maxHeight: "300px",
-                  borderRadius: "10px",
+              
+              <Box
+                sx={{
+                  position: "relative",
+                  width: '100%',
+                  height: '350px',
+                  borderRadius: '10px',
+                  overflow: 'hidden'
                 }}
-              />
+              >
+                <Image
+                  src={imagePreviewUrl}
+                  alt="Preview"
+                  layout="fill"
+                  objectFit="cover"
+                />
+              </Box>
+
             </Box>
           )}
         </DialogContent>

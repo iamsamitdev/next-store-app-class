@@ -13,6 +13,7 @@
     FormHelperText,
     Box,
   } from "@mui/material"
+  import Image from "next/image"
   import { Controller, useForm } from "react-hook-form"
   import { yupResolver } from "@hookform/resolvers/yup"
   import * as Yup from "yup"
@@ -129,12 +130,26 @@
         <DialogTitle sx={{ mt: "20px" }}>Edit Product</DialogTitle>
         <form onSubmit={handleSubmit(onSubmitEdit)} noValidate autoComplete="off">
           <DialogContent sx={{ width: "400px" }}>
+            
             {/* Preview Old Image */}
-            <img
-              src={`${process.env.NEXT_PUBLIC_BASE_IMAGE_URL_API}/${product?.product_picture}`}
-              alt={product?.product_name}
-              style={{ width: "100%", marginBottom: "20px" }}
-            />
+            <Box
+              sx={{
+                position: "relative",
+                width: '100%',
+                height: '350px',
+                borderRadius: '10px',
+                marginBottom: '20px',
+                overflow: 'hidden'
+              }}
+            >
+              <Image
+                src={`${process.env.NEXT_PUBLIC_BASE_IMAGE_URL_API}/${product?.product_picture}`}
+                alt={product?.product_name}
+                layout="fill"
+                objectFit="cover"
+              />
+            </Box>
+            
 
             <Controller
               name="product_name"
@@ -241,15 +256,22 @@
                     <IconX size={16} />
                   </Button>
                 </Box>
-                <img
-                  src={imagePreviewUrl}
-                  alt="Preview"
-                  style={{
-                    maxWidth: "100%",
-                    maxHeight: "300px",
-                    borderRadius: "10px",
+                <Box
+                  sx={{
+                    position: "relative",
+                    width: '100%',
+                    height: '350px',
+                    borderRadius: '10px',
+                    overflow: 'hidden'
                   }}
-                />
+                >
+                  <Image
+                    src={imagePreviewUrl}
+                    alt="Preview"
+                    layout="fill"
+                    objectFit="cover"
+                  />
+                </Box>
               </Box>
             )}
           </DialogContent>

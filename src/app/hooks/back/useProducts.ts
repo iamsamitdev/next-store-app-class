@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { getAllProducts } from "@/app/services/actions/productAction"
 
 function useProducts(
@@ -16,7 +16,7 @@ function useProducts(
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
 
-  const fetchProducts = async () => {
+  const fetchProducts = useCallback(async () => {
     setLoading(true)
     try {
       const response = await getAllProducts(
@@ -33,11 +33,11 @@ function useProducts(
       setError(error as any)
       setLoading(false)
     }
-  }
+  }, [page, rowsPerPage, selectedCategory, searchQuery])
 
   useEffect(() => {
     fetchProducts()
-  }, [page, rowsPerPage, selectedCategory, searchQuery])
+  }, [fetchProducts])
 
   return {
     products,
