@@ -39,7 +39,7 @@ export default function LoginPage({}: Props) {
               <Image
                     src={"/images/logos/NextStoreLogo.svg"}
                     alt="logo"
-                    height={40}
+                    height={51}
                     width={174}
                     priority
                 />
