@@ -13,13 +13,8 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'itgenius.co.th',
+        hostname: '*',
         pathname: '**',
-      },
-      {
-        protocol: "http",
-        hostname: "*",
-        pathname: "**",
       },
       {
         protocol: "http",
