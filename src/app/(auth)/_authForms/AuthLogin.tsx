@@ -45,8 +45,8 @@ export default function AuthLogin({ title, subtitle, subtext }: loginType) {
 
   // Initial Values
   const initialValue: User = {
-    username: "iamsamit", // iamsamit
-    password: "Samit@1234" // Samit@1234
+    username: "", // iamsamit
+    password: "" // Samit@1234
   }
 
   // Form Validation Schema
